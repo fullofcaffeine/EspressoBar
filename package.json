@@ -4,8 +4,8 @@
   "description": "A macOS/Linux tray app for accessing pinned org-mode headlines",
   "main": "./out/main/index.js",
   "author": {
-    "name": "Your Name",
-    "email": "your.email@example.com"
+    "name": "Marcelo Serpa",
+    "email": "hi@fullofcaffeine.com"
   },
   "homepage": "https://github.com/yourusername/espressobar",
   "repository": {
