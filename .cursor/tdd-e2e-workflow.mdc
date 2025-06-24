@@ -1,0 +1,397 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# TDD E2E Workflow: Mockup to Feature Pipeline
+
+## Overview
+
+This rule defines our complete workflow for developing new features using Test-Driven Development (TDD) with E2E tests first, integrated with the existing task processing workflow. Every new feature follows this pipeline:
+
+**Mockup → E2E Test → Beautiful UI → Integration Tests → Ship**
+
+## When This Applies
+
+- ✅ New features that touch the frontend
+- ✅ Modifying existing UI components  
+- ✅ Bug fixes that affect user interaction
+- ✅ Any change that impacts the user experience
+- ✅ IMPORTANT: Bug fixes should ideally start from a test and or regression test based on the bug steps to reproduce.
+
+## The Pipeline
+
+### Phase 1: Analysis & Planning
+```mermaid
+flowchart TD
+    Mockup[User Provides Mockup] --> Analyze[Analyze Requirements]
+    Analyze --> TaskList[Create/Update Task List]
+    TaskList --> E2ESpec[Write E2E Test Specification]
+```
+
+**AI Actions:**
+1. **Analyze the mockup** thoroughly:
+   - Identify all interactive elements
+   - Note visual design patterns (colors, spacing, typography)
+   - Understand user flow and state transitions
+   - List required data and API interactions
+
+2. **Create detailed task breakdown:**
+   - Follow existing task list format from `process-task-list.mdc`
+   - Break down into granular subtasks
+   - Include E2E test creation as first subtask
+   - Include UI implementation subtasks based on mockup sections
+
+3. **E2E Test Specification:**
+   ```
+   # E2E Test Plan for [Feature Name]
+   
+   ## User Journey
+   - [ ] User sees initial state (empty/loading)
+   - [ ] User performs primary action
+   - [ ] System responds with expected state change
+   - [ ] User can complete secondary actions
+   - [ ] Error states are handled gracefully
+   
+   ## Visual Requirements from Mockup
+   - [ ] Layout matches mockup structure
+   - [ ] Interactive elements are accessible
+   - [ ] Loading states are implemented
+   - [ ] Error states have proper UI
+   ```
+
+### Phase 2: E2E Test Implementation (TDD Red Phase)
+```mermaid
+flowchart TD
+    Spec[E2E Test Spec] --> WriteTest[Write Failing E2E Test]
+    WriteTest --> RunTest[Run Test - Verify Failure]
+    RunTest --> TaskComplete[Mark E2E Subtask Complete]
+```
+
+**AI Actions:**
+1. **Write comprehensive E2E tests FIRST:**
+   ```typescript
+   // Follow the pattern from expressobar e2e tests
+   test.describe('Feature Name', () => {
+     test('should complete primary user journey', async () => {
+       // 1. Navigate to feature
+       // 2. Verify initial state matches mockup
+       // 3. Perform user actions
+       // 4. Assert expected outcomes
+       // 5. Test error cases
+     });
+   });
+   ```
+
+2. **Use our proven selectors:**
+   - Prefer `role=` selectors (accessible)
+   - Use `text=` selectors for content
+   - Fall back to `data-testid` only when needed
+   - Avoid CSS selectors
+
+3. **Test the user journey, not implementation:**
+   - Focus on what users see and do
+   - Test state transitions visible in UI
+   - Verify error handling and loading states
+
+4. **Run test to confirm it fails** (Red phase)
+5. **Mark E2E test subtask as complete** per task list protocol
+
+### Phase 3: UI Implementation (TDD Green Phase)
+```mermaid
+flowchart TD
+    FailingTest[Failing E2E Test] --> Implement[Implement UI Components]
+    Implement --> StyleImplement[Apply Tailwind/shadcn Styling]
+    StyleImplement --> TestPass[Make E2E Test Pass]
+    TestPass --> Integration[Add Integration Tests]
+```
+
+**AI Actions:**
+
+1. **Implement beautiful UI components:**
+   ```tsx
+   // Use shadcn/ui components as base
+   import { Button } from '@/components/ui/button'
+   import { Card, CardContent, CardHeader } from '@/components/ui/card'
+   
+   // Follow mockup exactly for:
+   // - Layout structure
+   // - Color scheme  
+   // - Typography
+   // - Spacing
+   // - Interactive states
+   ```
+
+2. **Tailwind styling guidelines:**
+   - Use design tokens from shadcn/ui theme
+   - Follow spacing scale (p-4, gap-2, etc.)
+   - Use semantic color classes (bg-primary, text-muted-foreground)
+   - Implement responsive design if mockup shows multiple screen sizes
+   - Add proper hover/focus states for interactivity
+
+3. **Component structure:**
+   ```tsx
+   // Good component structure
+   const FeatureComponent = () => {
+     // State management
+     const [loading, setLoading] = useState(false)
+     const [error, setError] = useState<string | null>(null)
+     
+     // Event handlers
+     const handleAction = async () => {
+       setLoading(true)
+       try {
+         // Business logic
+       } catch (err) {
+         setError(err.message)
+       } finally {
+         setLoading(false)
+       }
+     }
+     
+     // Render with clear states
+     if (loading) return <LoadingState />
+     if (error) return <ErrorState error={error} />
+     
+     return <MainContent onAction={handleAction} />
+   }
+   ```
+
+4. **Make E2E test pass** (Green phase)
+5. **Mark UI implementation subtask complete**
+
+### Phase 4: Integration Testing & Refinement
+```mermaid
+flowchart TD
+    PassingE2E[Passing E2E Test] --> Integration[Write Integration Tests]
+    Integration --> Refactor[Refactor if Needed]
+    Refactor --> FullTest[Run Full Test Suite]
+    FullTest --> TaskComplete[Mark Feature Complete]
+```
+
+**AI Actions:**
+
+1. **Add integration tests** following our layer-based mocking strategy:
+   ```tsx
+   // Focus on component behavior, not presentation
+   describe('FeatureComponent', () => {
+     it('handles user interaction correctly', async () => {
+       // Mock Layer 2: Services/APIs
+       mockApiClient.getData.mockResolvedValue(testData)
+       
+       // Render with real UI components (Layer 1)
+       render(<FeatureComponent />)
+       
+       // Test behavior
+       await user.click(screen.getByRole('button', { name: /submit/i }))
+       
+       // Assert business outcomes
+       expect(screen.getByText('Success message')).toBeInTheDocument()
+     })
+   })
+   ```
+
+2. **Refactor for quality** (TDD Refactor phase):
+   - Extract reusable components
+   - Optimize performance if needed
+   - Ensure accessibility compliance
+   - Clean up any temporary code
+
+3. **Run full test suite** before marking complete
+4. **Commit changes** following conventional commit format
+5. **Mark parent task complete**
+
+## Integration with Task Processing
+
+### Task List Template
+```markdown
+## [Feature Name] - [Mockup Reference]
+
+### Analysis & Planning
+- [ ] Analyze mockup requirements
+- [ ] Identify interactive elements and user flows  
+- [ ] Create E2E test specification
+- [ ] Break down UI implementation into components
+
+### E2E Test Implementation (TDD Red)
+- [ ] Write failing E2E test for primary user journey
+- [ ] Add E2E tests for error states and edge cases
+- [ ] Verify all tests fail appropriately
+- [ ] Run `npm run test:e2e` to confirm failure
+
+### UI Implementation (TDD Green) 
+- [ ] Implement [ComponentName] with shadcn/ui base
+- [ ] Apply Tailwind styling to match mockup
+- [ ] Implement loading and error states
+- [ ] Add proper accessibility attributes
+- [ ] Make E2E tests pass
+
+### Integration Testing & Refinement (TDD Refactor)
+- [ ] Write integration tests for component behavior
+- [ ] Refactor code for maintainability  
+- [ ] Run full test suite
+- [ ] Commit changes with conventional commit format
+
+### Relevant Files
+- `tests/e2e/[feature-name].spec.ts` - E2E tests
+- `src/components/[ComponentName].tsx` - Main component
+- `src/components/ui/[ui-component].tsx` - UI primitives (if new)
+```
+
+## Quality Guidelines
+
+### E2E Test Quality
+
+**CRITICAL RULE: E2E tests must simulate real user interactions only!**
+
+```typescript
+// ✅ GOOD: Tests user behavior through UI interactions
+test('user can create a new pin', async () => {
+  await page.click('text=+ Quick note…')
+  await expect(page.locator('role=dialog')).toBeVisible()
+  await page.fill('textarea', 'My new pin')
+  await page.click('text=Save')
+  await expect(page.locator('text=My new pin')).toBeVisible()
+})
+
+// ✅ GOOD: User scans files by clicking buttons in UI
+test('user can scan for pinned items', async () => {
+  // Navigate to preferences (like real user)
+  await page.click('[aria-label="Settings"]')
+  await expect(page.locator('text=Preferences')).toBeVisible()
+  
+  // Add directory through UI (like real user)
+  await page.click('text=Add Directory')
+  // ... simulate directory picker somehow or pre-configure
+  
+  // Trigger scan by clicking button (like real user)
+  await page.click('[data-testid="incremental-scan-button"]')
+  
+  // Wait for scan to complete (UI feedback)
+  await expect(page.locator('text=Scan completed')).toBeVisible()
+  
+  // Navigate back and verify pins visible (like real user)
+  await page.click('[aria-label="Back"]')
+  await expect(page.locator('text=Pinned (3)')).toBeVisible()
+})
+
+// ❌ BAD: Direct API calls bypass user interaction
+test('scan should update pins', async () => {
+  // This bypasses the UI and doesn't test real user flow
+  const result = await page.evaluate(() => 
+    window.electronAPI.triggerFullScan()
+  )
+  expect(result.pinnedItems).toBe(3)
+})
+
+// ❌ BAD: Tests implementation details
+test('modal component renders correctly', async () => {
+  await page.click('[data-testid="add-button"]')
+  await expect(page.locator('[data-testid="modal"]')).toBeVisible()
+  await expect(page.locator('[data-testid="modal-title"]')).toContainText('Capture')
+})
+```
+
+### E2E vs Integration Test Boundaries
+
+**E2E Tests (user simulation only):**
+- ✅ Click buttons, fill forms, navigate pages
+- ✅ Wait for visual feedback and state changes
+- ✅ Verify what users can see and interact with
+- ❌ NEVER call APIs directly via `window.electronAPI`
+- ❌ NEVER call internal functions or access state directly
+
+**Integration Tests (API/function testing):**
+- ✅ Mock external dependencies
+- ✅ Test business logic and API contracts
+- ✅ Verify state management and data flow
+- ✅ Test error handling and edge cases
+
+### UI Implementation Quality
+```tsx
+// ✅ GOOD: Follows mockup, uses design system
+const PinCard = ({ pin, onDelete }) => (
+  <Card className="group hover:bg-muted/50 transition-colors">
+    <CardContent className="flex items-center justify-between p-3">
+      <span className="text-sm text-foreground truncate">
+        {pin.content}
+      </span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={() => onDelete(pin.id)}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </CardContent>
+  </Card>
+)
+
+// ❌ BAD: Doesn't match design system
+const PinCard = ({ pin, onDelete }) => (
+  <div style={{ background: '#f0f0f0', padding: '10px' }}>
+    <span>{pin.content}</span>
+    <button onClick={() => onDelete(pin.id)}>Delete</button>
+  </div>
+)
+```
+
+## Error Handling
+
+### If E2E Test Doesn't Pass
+1. **Debug with screenshots:** Check `test-results/` for failure screenshots
+2. **Check selectors:** Ensure elements are rendered with expected text/roles
+3. **Verify timing:** Add appropriate waits for async operations
+4. **Check console logs:** Look for JavaScript errors
+
+### If Mockup is Unclear
+1. **Ask specific questions:** "Should this button be disabled when loading?"
+2. **Propose reasonable defaults:** "I'll implement error state as a red toast notification"
+3. **Document assumptions:** Add comments in code explaining decisions
+
+### If Tests are Flaky
+1. **Add proper waits:** Use `waitFor` instead of `waitForTimeout`
+2. **Check async operations:** Ensure all promises are properly awaited
+3. **Review selectors:** Use more stable selectors (role > text > testid > css)
+
+## Success Metrics
+
+A feature is complete when:
+- ✅ All E2E tests pass consistently
+- ✅ UI matches mockup visual design
+- ✅ Integration tests cover component behavior  
+- ✅ Full test suite passes
+- ✅ Code follows project conventions
+- ✅ All task list items are marked complete
+- ✅ Changes are committed with proper message
+
+## Examples
+
+### Good E2E Test Structure
+```typescript
+test.describe('Pin Management', () => {
+  test('complete pin lifecycle', async () => {
+    // 1. Initial state
+    await expect(page.locator('text=Nothing pinned yet')).toBeVisible()
+    
+    // 2. Create pin
+    await page.click('text=+ Quick note…')
+    await page.fill('textarea', 'Buy groceries')
+    await page.click('text=Save')
+    
+    // 3. Verify creation
+    await expect(page.locator('text=Buy groceries')).toBeVisible()
+    await expect(page.locator('text=Pinned (1)')).toBeVisible()
+    
+    // 4. Delete pin  
+    await page.hover('text=Buy groceries')
+    await page.click('[data-testid="delete-pin"]')
+    
+    // 5. Verify deletion
+    await expect(page.locator('text=Nothing pinned yet')).toBeVisible()
+  })
+})
+```
+
+This workflow ensures every feature is built with quality, tested thoroughly, and matches the design vision perfectly.

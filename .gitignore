@@ -1,0 +1,55 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist
+out
+.DS_Store
+.eslintcache
+*.log*
+
+# TypeScript build artifacts (should not be in src/)
+src/**/*.js
+src/**/*.jsx
+src/**/*.d.ts
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Test outputs
+test-results/
+playwright-report/
+coverage/
+.nyc_output
+.specstory/**
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Electron specific
+app/dist/
+app/build/
+electron-builder-*.yaml
+.electron-gyp
+

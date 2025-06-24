@@ -1,0 +1,98 @@
+appId: com.espressobar.app
+productName: EspressoBar
+directories:
+  buildResources: resources
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!test-org-files'
+  - '!tests'
+  - '!tasks'
+  - '!docs'
+  - '!playwright-report'
+  - '!test-results'
+  - '!**/*.png'
+  - '!**/*.md'
+  - '!**/*.spec.ts'
+  - '!playwright.config.ts'
+asarUnpack:
+  - resources/**
+win:
+  executableName: EspressoBar
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64  
+        - arm64
+  icon: resources/icon.png
+  extendInfo:
+    - NSDocumentsFolderUsageDescription: EspressoBar needs access to scan your org-mode files for pinned headlines.
+    - NSDownloadsFolderUsageDescription: EspressoBar may need access to your Downloads folder for org files.
+    - LSUIElement: true
+    - LSBackgroundOnly: false
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  notarize: false
+dmg:
+  artifactName: ${name}-${version}-${arch}.${ext}
+  title: ${productName} ${version}
+  icon: resources/icon.png
+  background: null
+  contents:
+    - x: 410
+      y: 150
+      type: link
+      path: /Applications
+    - x: 130
+      y: 150
+      type: file
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+    - target: tar.gz
+      arch:
+        - x64
+  maintainer: "your.email@example.com"
+  category: Utility
+  description: "A tray app for accessing pinned org-mode headlines"
+  desktop:
+    entry:
+      Name: EspressoBar
+      Comment: Quick access to pinned org-mode headlines
+      Categories: Utility;Office;
+      Keywords: org-mode;emacs;productivity;
+appImage:
+  artifactName: ${name}-${version}-${arch}.${ext}
+deb:
+  artifactName: ${name}-${version}-${arch}.${ext}
+npmRebuild: false
+compression: normal
+
+publish: null

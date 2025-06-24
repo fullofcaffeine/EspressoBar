@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Before any new or fixing bugs or writing tests in general, feature -> look into [](mdc:.cursor/tdd-e2e-workflow.mdc).
+
+REGRESSION TESTS SHOULD BE WRITTEN WHEN WORKING ON BUGS BUT ONLY IF THERE ISN'T ALREADY A SIMILAR TEST THAT CAN BE MODIFIED/ADAPTED TO TEST THE SCENARIO.

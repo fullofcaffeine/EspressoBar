@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+You MUST always check if for the request at hand there are tasks in tasks/tasks-expressobar-prd.md. If not, use [generate-tasks.mdc](mdc:.cursor/generate-tasks.mdc) to generate tasks for the request at hand, but first, verify if there are no ambiguous or duplicaate tasks that could conflict in the PRD.
+
+Then, use [process-task-list.mdc](mdc:.cursor/process-task-list.mdc) to tackle the tasks.
+
+Again, you SHOULD NOT start working on anything if it's not related to a task in the PRD.

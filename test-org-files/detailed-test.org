@@ -1,0 +1,60 @@
+* TODO Important task with timestamps
+  :PROPERTIES:
+  :PINNED: t
+  :END:
+  SCHEDULED: <2024-12-18 Wed 10:00>
+  DEADLINE: <2024-12-20 Fri>
+
+  This is an important task that needs attention.
+  
+  It contains multiple lines of detailed content that should be displayed
+  in the detail view when the user clicks on the pin.
+  
+  The task also includes timestamps for scheduling and deadlines.
+
+* TODO Meeting notes with time range
+  :PROPERTIES:
+  :PINNED: t
+  :END:
+  <2024-12-19 Thu 14:00-16:00>
+  
+  Notes from the team meeting about project status.
+  
+  Agenda:
+  - Review current progress
+  - Discuss upcoming milestones
+  - Plan next quarter's projects
+  
+  Action items:
+  - Follow up on pending tasks
+  - Schedule individual check-ins
+
+* TODO Project planning with multiple timestamps
+  :PROPERTIES:
+  :PINNED: t
+  :END:
+  SCHEDULED: <2024-12-21 Sat>
+  Meeting date: <2024-12-22 Sun 15:30>
+  Review period: <2024-12-23 Mon>--<2024-12-27 Fri>
+  
+  Planning for the next quarter's projects and goals.
+  
+  This entry demonstrates:
+  - Scheduled timestamps
+  - Active timestamps
+  - Date ranges
+  - Detailed content with multiple paragraphs
+  
+  Created: [2024-12-17 Tue 09:45]
+
+* Regular task (not pinned)
+  No timestamps here.
+  
+  This is just a regular task without the pinned property.
+  It should not appear in the pinned items list.
+
+* Another regular task
+  Created: [2024-12-17 Tue 10:00]
+  
+  This task is also not pinned and should not show up in the pinned items,
+  even though it has a timestamp. 
