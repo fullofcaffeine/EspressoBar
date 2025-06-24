@@ -1,4 +1,16 @@
-import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, NativeImage, globalShortcut, screen, dialog } from 'electron'
+import {
+  app,
+  shell,
+  BrowserWindow,
+  ipcMain,
+  Tray,
+  Menu,
+  nativeImage,
+  NativeImage,
+  globalShortcut,
+  screen,
+  dialog
+} from 'electron'
 import { join, resolve } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import type { Pin } from '../shared/types'
@@ -106,21 +118,21 @@ function createWindow(): void {
 // @ts-ignore - unused function kept for future use
 function getTrayIcon(): NativeImage {
   console.log('🔍 Getting tray icon...')
-  
+
   // Use proper tray template images for better positioning and appearance
   const iconPaths = [
     resolve(__dirname, '../../resources/trayTemplate.png'), // Dev path - proper tray template
     join(process.resourcesPath, 'trayTemplate.png'), // Production path
-    resolve(app.getAppPath(), 'resources', 'trayTemplate.png'), // Alternative path
+    resolve(app.getAppPath(), 'resources', 'trayTemplate.png') // Alternative path
   ]
-  
+
   for (const iconPath of iconPaths) {
     console.log(`🔍 Trying tray template icon path: ${iconPath}`)
     try {
       const img = nativeImage.createFromPath(iconPath)
       if (!img.isEmpty()) {
         console.log(`✅ Successfully loaded tray template icon from: ${iconPath}`)
-        
+
         // Keep the original image without resizing - let macOS handle the sizing
         console.log(`📊 Original image properties:`, {
           isEmpty: img.isEmpty(),
@@ -128,7 +140,7 @@ function getTrayIcon(): NativeImage {
           aspectRatio: img.getAspectRatio(),
           nativeHandle: !!img.getNativeHandle()
         })
-        
+
         if (process.platform === 'darwin') {
           // Enable template image for proper macOS tray behavior
           img.setTemplateImage(true)
@@ -139,7 +151,7 @@ function getTrayIcon(): NativeImage {
             isTemplateImage: img.isTemplateImage()
           })
         }
-        
+
         return img
       } else {
         console.log(`⚠️  Empty image from path: ${iconPath}`)
@@ -148,7 +160,7 @@ function getTrayIcon(): NativeImage {
       console.log(`❌ Error loading tray template icon from ${iconPath}:`, error)
     }
   }
-  
+
   console.error('❌ Failed to load tray template icon from all paths')
   // Fallback to empty image (alternative approach for positioning issues)
   console.log('🔄 Using empty image as fallback (reference: transparent tray icon approach)')
@@ -159,36 +171,36 @@ function createTray(): void {
   try {
     console.log('🚀 Creating tray icon...')
     console.log(`🖥️  Platform: ${process.platform}`)
-    
+
     // Try the empty/transparent icon approach for better positioning on macOS
     // This is a known workaround for tray positioning issues
     console.log('🔄 Using empty/transparent icon approach for better macOS positioning')
     const trayIcon = nativeImage.createEmpty()
-    
+
     // Alternative: If you want to try with the actual icon, uncomment this:
     // const trayIcon = getTrayIcon()
-    
+
     if (trayIcon.isEmpty()) {
       console.log('✅ Using empty icon (this is intentional for positioning fix)')
     }
-    
+
     console.log('📱 Creating Tray instance...')
     tray = new Tray(trayIcon)
-    
+
     // Set tooltip
     tray.setToolTip('EspressoBar - Quick Pin Access')
     console.log('✅ Tray tooltip set')
-    
+
     // Since we're using an empty icon, set a title to make it visible
     tray.setTitle('☕')
     console.log('✅ Tray title set to make it visible with empty icon')
-    
+
     // Handle click events - no context menu, just toggle window
     tray.on('click', () => {
       console.log('🖱️  Tray clicked!')
       handleTrayClick()
     })
-    
+
     if (process.platform === 'darwin') {
       // On macOS, handle right-click the same as left-click (no context menu)
       tray.on('right-click', () => {
@@ -197,30 +209,31 @@ function createTray(): void {
       })
       console.log('✅ macOS tray click handlers set')
     }
-    
+
     // Create empty context menu to ensure tray icon visibility without actual menu
     const dummyContextMenu = Menu.buildFromTemplate([])
     tray.setContextMenu(dummyContextMenu)
     console.log('✅ Tray created successfully!')
     console.log(`📍 Platform: ${process.platform}`)
-    
+
     // Add debugging to help locate the tray icon
     setTimeout(() => {
       if (tray && !tray.isDestroyed()) {
         const bounds = tray.getBounds()
-        console.log(`🎯 TRAY LOCATION: x=${bounds.x}, y=${bounds.y}, width=${bounds.width}, height=${bounds.height}`)
-        
+        console.log(
+          `🎯 TRAY LOCATION: x=${bounds.x}, y=${bounds.y}, width=${bounds.width}, height=${bounds.height}`
+        )
+
         // Flash the context menu to make the tray icon more visible
         console.log('🔍 Flashing context menu to help you locate the tray icon...')
         tray.popUpContextMenu()
-        
+
         setTimeout(() => {
           // Close the menu after a brief moment
           console.log('✨ Context menu should be visible now - this shows where your tray icon is!')
         }, 1000)
       }
     }, 2000)
-    
   } catch (error) {
     console.error('❌ Error creating tray:', error)
     console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace available')
@@ -229,12 +242,12 @@ function createTray(): void {
 
 function getTrayWindowPosition() {
   if (!mainWindow || !tray) return { x: 0, y: 0 }
-  
+
   const windowBounds = mainWindow.getBounds()
   const trayBounds = tray.getBounds()
 
   // Center window horizontally below the tray icon
-  const x = Math.round(trayBounds.x + (trayBounds.width / 2) - (windowBounds.width / 2))
+  const x = Math.round(trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2)
   // Position window 4 pixels vertically below the tray icon
   const y = Math.round(trayBounds.y + trayBounds.height + 4)
 
@@ -243,12 +256,12 @@ function getTrayWindowPosition() {
 
 function getCenteredWindowPosition() {
   if (!mainWindow) return { x: 0, y: 0 }
-  
+
   const primaryDisplay = screen.getPrimaryDisplay()
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
-  
+
   const windowBounds = mainWindow.getBounds()
-  
+
   // Center window on screen
   const x = Math.round((screenWidth - windowBounds.width) / 2)
   const y = Math.round((screenHeight - windowBounds.height) / 2)
@@ -260,11 +273,11 @@ function showWindowInTrayMode(): void {
   console.log('showWindowInTrayMode called')
   if (mainWindow) {
     console.log('Main window exists, showing in tray mode...')
-    
+
     const position = getTrayWindowPosition()
     console.log(`Setting window position to: x=${position.x}, y=${position.y} (tray positioning)`)
     mainWindow.setPosition(position.x, position.y, false)
-    
+
     mainWindow.show()
     mainWindow.focus()
     windowMode = 'tray'
@@ -278,11 +291,13 @@ function showWindowInKeyboardMode(): void {
   console.log('showWindowInKeyboardMode called')
   if (mainWindow) {
     console.log('Main window exists, showing in keyboard mode...')
-    
+
     const position = getCenteredWindowPosition()
-    console.log(`Setting window position to: x=${position.x}, y=${position.y} (centered positioning)`)
+    console.log(
+      `Setting window position to: x=${position.x}, y=${position.y} (centered positioning)`
+    )
     mainWindow.setPosition(position.x, position.y, false)
-    
+
     mainWindow.show()
     mainWindow.focus()
     windowMode = 'keyboard'
@@ -360,7 +375,7 @@ async function initializeSettingsStore() {
         version: 1
       }
     })
-    
+
     console.log('✅ Settings store initialized')
     console.log('📁 Settings file location:', (settingsStore as any).path)
     return settingsStore
@@ -385,10 +400,10 @@ function getSettings(): AppSettings {
       version: 1
     }
   }
-  
+
   return {
     orgDirectories: (settingsStore as any).get('orgDirectories'),
-    theme: (settingsStore as any).get('theme'), 
+    theme: (settingsStore as any).get('theme'),
     autoStart: (settingsStore as any).get('autoStart'),
     hotkeys: (settingsStore as any).get('hotkeys'),
     version: (settingsStore as any).get('version')
@@ -400,14 +415,14 @@ function updateSettings(newSettings: Partial<AppSettings>): AppSettings {
     console.warn('⚠️ Settings store not initialized, cannot update settings')
     return getSettings()
   }
-  
+
   // Update individual settings
   Object.entries(newSettings).forEach(([key, value]) => {
     if (value !== undefined) {
-      (settingsStore as any).set(key, value)
+      ;(settingsStore as any).set(key, value)
     }
   })
-  
+
   console.log('💾 Settings updated:', newSettings)
   return getSettings()
 }
@@ -417,8 +432,8 @@ function resetSettings(): AppSettings {
     console.warn('⚠️ Settings store not initialized, cannot reset settings')
     return getSettings()
   }
-  
-  (settingsStore as any).clear()
+
+  ;(settingsStore as any).clear()
   const defaultSettings = getSettings()
   console.log('🧹 Settings reset to defaults')
   return defaultSettings
@@ -434,54 +449,54 @@ let emacsService: EmacsService | null = null
 // Set up IPC handlers for pin operations with org service
 function setupOrgIPCHandlers(): void {
   console.log('🔧 Setting up org-based IPC handlers...')
-  
+
   // Get all pins from org service
   ipcMain.handle(IPC_CHANNELS.GET_PINS, async (): Promise<Pin[]> => {
     if (!orgService) {
       console.log('📋 GET_PINS requested - org service not initialized, returning empty array')
       return []
     }
-    
+
     // Get pins from org service
     const currentPins = orgService.getCurrentPins()
     console.log(`📋 GET_PINS requested - returning ${currentPins.length} pins from org service`)
     return currentPins
   })
-  
+
   // Add a new pin (manual capture)
   ipcMain.handle(IPC_CHANNELS.ADD_PIN, async (_event, content: string): Promise<Pin> => {
     console.log('➕ ADD_PIN requested:', content)
-    
+
     const newPin: Pin = {
       id: `manual-pin-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       content: content.trim(),
       timestamp: Date.now(),
       tags: ['manual']
     }
-    
+
     // For now, just add to test pins array
     testPins.unshift(newPin)
     console.log('✅ Manual pin created and stored:', newPin.id)
-    
+
     // Notify renderer of updates
     if (mainWindow) {
       mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, [...testPins])
     }
-    
+
     return newPin
   })
-  
+
   // Remove a pin - TEMPORARILY COMMENTED OUT
   // ipcMain.handle('remove-pin', async (_event, id: string): Promise<void> => {
   //   console.log('🗑️  REMOVE_PIN requested:', id)
-  //   
+  //
   //   // For now, remove from test pins
   //   const initialLength = testPins.length
   //   testPins = testPins.filter(pin => pin.id !== id)
-  //   
+  //
   //   if (testPins.length < initialLength) {
   //     console.log('✅ Pin removed:', id)
-  //     
+  //
   //     // Notify renderer of updates
   //     if (mainWindow) {
   //       mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, [...testPins])
@@ -490,120 +505,141 @@ function setupOrgIPCHandlers(): void {
   //     console.log('⚠️  Pin not found:', id)
   //   }
   // })
-  
+
   // Save capture (same as add pin for now) - TEMPORARILY COMMENTED OUT
   // ipcMain.handle('save-capture', async (_event, content: string): Promise<Pin> => {
   //   console.log('💾 SAVE_CAPTURE requested:', content)
-  //   
+  //
   //   const newPin: Pin = {
   //     id: `capture-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
   //     content: content.trim(),
   //     timestamp: Date.now(),
   //     tags: ['capture']
   //   }
-  //   
+  //
   //   testPins.unshift(newPin)
   //   console.log('✅ Capture saved and stored:', newPin.id)
-  //   
+  //
   //   // Notify renderer of updates
   //   if (mainWindow) {
   //     mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, [...testPins])
   //   }
-  //   
+  //
   //   return newPin
   // })
-  
+
   // Refresh pins (trigger org scan)
   ipcMain.handle(IPC_CHANNELS.REFRESH_PINS, async (): Promise<Pin[]> => {
     console.log('🔄 REFRESH_PINS requested - triggering org scan')
-    
+
     if (orgService) {
       const scanResult = await orgService.triggerScan()
       console.log(`✅ Org scan completed: ${scanResult.pinnedItems} pins found`)
-      
+
       // Get the actual pins from the org service
       const currentPins = orgService.getCurrentPins()
       console.log(`🔄 Returning ${currentPins.length} pins from org service`)
       return currentPins
     }
-    
+
     // Fallback to test pins if org service is not available
     console.log('⚠️ Org service not available, returning test pins')
     return [...testPins]
   })
-  
+
   // Org directory management
-  ipcMain.handle(IPC_CHANNELS.SET_ORG_DIRECTORIES, async (_event, directories: string[]): Promise<void> => {
-    console.log('📁 SET_ORG_DIRECTORIES requested:', directories)
-    
-    // Update persistent settings
-    updateSettings({ orgDirectories: directories })
-    
-    // Update org service
-    if (orgService) {
-      await orgService.setOrgDirectories(directories)
+  ipcMain.handle(
+    IPC_CHANNELS.SET_ORG_DIRECTORIES,
+    async (_event, directories: string[]): Promise<void> => {
+      console.log('📁 SET_ORG_DIRECTORIES requested:', directories)
+
+      // Update persistent settings
+      updateSettings({ orgDirectories: directories })
+
+      // Update org service
+      if (orgService) {
+        await orgService.setOrgDirectories(directories)
+      }
     }
-  })
-  
+  )
+
   ipcMain.handle(IPC_CHANNELS.GET_ORG_DIRECTORIES, async (): Promise<string[]> => {
     console.log('📁 GET_ORG_DIRECTORIES requested')
-    
+
     // Get from persistent settings instead of just org service
     const settings = getSettings()
     return settings.orgDirectories
   })
-  
+
   ipcMain.handle(IPC_CHANNELS.PICK_ORG_DIRECTORY, async (): Promise<string | null> => {
     console.log('📁 PICK_ORG_DIRECTORY requested')
-    
+
     const result = await dialog.showOpenDialog(mainWindow!, {
       title: 'Select Org Directory',
       message: 'Choose a directory to scan for org files',
       properties: ['openDirectory', 'createDirectory'],
       buttonLabel: 'Select Directory'
     })
-    
+
     if (result.canceled || result.filePaths.length === 0) {
       return null
     }
-    
+
     return result.filePaths[0]
   })
-  
+
   // Org scan operations
   ipcMain.handle(IPC_CHANNELS.TRIGGER_INCREMENTAL_SCAN, async () => {
     console.log('🔄 TRIGGER_INCREMENTAL_SCAN requested')
-    
+
     if (orgService) {
       return await orgService.triggerIncrementalScan()
     }
-    
-    return { totalFiles: 0, processedFiles: 0, pinnedItems: 0, errors: ['Org service not initialized'], scanTime: 0 }
+
+    return {
+      totalFiles: 0,
+      processedFiles: 0,
+      pinnedItems: 0,
+      errors: ['Org service not initialized'],
+      scanTime: 0
+    }
   })
-  
+
   ipcMain.handle(IPC_CHANNELS.TRIGGER_FULL_SCAN, async () => {
     console.log('🧹 TRIGGER_FULL_SCAN requested')
-    
+
     if (orgService) {
       return await orgService.triggerFullScan()
     }
-    
-    return { totalFiles: 0, processedFiles: 0, pinnedItems: 0, errors: ['Org service not initialized'], scanTime: 0 }
+
+    return {
+      totalFiles: 0,
+      processedFiles: 0,
+      pinnedItems: 0,
+      errors: ['Org service not initialized'],
+      scanTime: 0
+    }
   })
-  
+
   ipcMain.handle(IPC_CHANNELS.GET_SCAN_PROGRESS, async () => {
     if (orgService) {
       return orgService.getScanProgress()
     }
-    
-    return { isScanning: false, totalFiles: 0, processedFiles: 0, currentFile: '', isComplete: true }
+
+    return {
+      isScanning: false,
+      totalFiles: 0,
+      processedFiles: 0,
+      currentFile: '',
+      isComplete: true
+    }
   })
-  
+
   ipcMain.handle(IPC_CHANNELS.GET_SCAN_STATS, async () => {
     if (orgService) {
       return await orgService.getStats()
     }
-    
+
     return null
   })
 
@@ -613,56 +649,68 @@ function setupOrgIPCHandlers(): void {
     return getSettings()
   })
 
-  ipcMain.handle(IPC_CHANNELS.UPDATE_SETTINGS, async (_event, newSettings: Partial<AppSettings>): Promise<AppSettings> => {
-    console.log('⚙️ UPDATE_SETTINGS requested:', newSettings)
-    const updatedSettings = updateSettings(newSettings)
-    
-    // If org directories were updated, update the org service
-    if (newSettings.orgDirectories && orgService) {
-      await orgService.setOrgDirectories(newSettings.orgDirectories)
+  ipcMain.handle(
+    IPC_CHANNELS.UPDATE_SETTINGS,
+    async (_event, newSettings: Partial<AppSettings>): Promise<AppSettings> => {
+      console.log('⚙️ UPDATE_SETTINGS requested:', newSettings)
+      const updatedSettings = updateSettings(newSettings)
+
+      // If org directories were updated, update the org service
+      if (newSettings.orgDirectories && orgService) {
+        await orgService.setOrgDirectories(newSettings.orgDirectories)
+      }
+
+      return updatedSettings
     }
-    
-    return updatedSettings
-  })
+  )
 
   ipcMain.handle(IPC_CHANNELS.RESET_SETTINGS, async (): Promise<AppSettings> => {
     console.log('🧹 RESET_SETTINGS requested')
     const defaultSettings = resetSettings()
-    
+
     // Reset org service directories too
     if (orgService) {
       await orgService.setOrgDirectories([])
     }
-    
+
     return defaultSettings
   })
 
   // Reset all test data (for test cleanup)
   ipcMain.handle(IPC_CHANNELS.RESET_TEST_DATA, async (): Promise<void> => {
     console.log('🧹 RESET_TEST_DATA requested')
-    
+
     // Reset pins
     testPins = []
     console.log('✅ Test pins cleared')
-    
+
     // Notify renderer of all updates
     if (mainWindow) {
       mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, [...testPins])
     }
-    
+
     console.log('✅ All test data reset')
   })
 
   // Emacs integration - open file in Emacs using emacsclient
-  ipcMain.handle(IPC_CHANNELS.OPEN_IN_EMACS, async (_event, filePath: string, lineNumber?: number): Promise<{ success: boolean; error?: string }> => {
-    console.log(`📝 OPEN_IN_EMACS requested: ${filePath}${lineNumber ? ` at line ${lineNumber}` : ''}`)
-    
-    if (!emacsService) {
-      emacsService = new EmacsService()
+  ipcMain.handle(
+    IPC_CHANNELS.OPEN_IN_EMACS,
+    async (
+      _event,
+      filePath: string,
+      lineNumber?: number
+    ): Promise<{ success: boolean; error?: string }> => {
+      console.log(
+        `📝 OPEN_IN_EMACS requested: ${filePath}${lineNumber ? ` at line ${lineNumber}` : ''}`
+      )
+
+      if (!emacsService) {
+        emacsService = new EmacsService()
+      }
+
+      return await emacsService.openInEmacs(filePath, lineNumber)
     }
-    
-    return await emacsService.openInEmacs(filePath, lineNumber)
-  })
+  )
 
   // Window operations
   ipcMain.handle(IPC_CHANNELS.HIDE_WINDOW, async (): Promise<void> => {
@@ -683,7 +731,7 @@ function setupOrgIPCHandlers(): void {
       showWindowInKeyboardMode()
     }
   })
-  
+
   console.log('✅ Org-based IPC handlers set up successfully')
 }
 
@@ -705,7 +753,7 @@ app.whenReady().then(async () => {
   // In test mode, skip tray behavior and show window directly
   if (isTestMode) {
     console.log('🧪 TEST MODE: Skipping tray setup, showing window directly')
-    
+
     // Don't set as background agent in test mode
     if (process.platform === 'darwin') {
       app.setActivationPolicy('regular') // Allow normal app behavior
@@ -717,7 +765,7 @@ app.whenReady().then(async () => {
       // Set as background agent app (prevents it from appearing in Cmd+Tab and keeps it in status bar area)
       app.setActivationPolicy('accessory')
       console.log('✅ App set as macOS background agent (status bar only)')
-      
+
       // Also ensure LSUIElement is respected (should be set in Info.plist or electron-builder config)
       console.log('🔧 Activation policy set to accessory for proper tray behavior')
     }
@@ -755,44 +803,49 @@ app.whenReady().then(async () => {
     // Normal mode: Create tray FIRST, then window
     createTray()
     createWindow()
-    
+
     // Initialize org service with main window and saved directories
     if (orgService && mainWindow) {
-      orgService.initialize(mainWindow).then(async () => {
-        console.log('✅ Org service initialized with main window')
-        
-        // Ensure org directories are loaded from settings
-        if (savedSettings.orgDirectories.length > 0 && orgService) {
-          await orgService.setOrgDirectories(savedSettings.orgDirectories)
-          console.log(`📁 Loaded ${savedSettings.orgDirectories.length} org directories from settings`)
-        }
-      }).catch(error => {
-        console.error('❌ Failed to initialize org service:', error)
-      })
+      orgService
+        .initialize(mainWindow)
+        .then(async () => {
+          console.log('✅ Org service initialized with main window')
+
+          // Ensure org directories are loaded from settings
+          if (savedSettings.orgDirectories.length > 0 && orgService) {
+            await orgService.setOrgDirectories(savedSettings.orgDirectories)
+            console.log(
+              `📁 Loaded ${savedSettings.orgDirectories.length} org directories from settings`
+            )
+          }
+        })
+        .catch((error) => {
+          console.error('❌ Failed to initialize org service:', error)
+        })
     }
-    
+
     // Register global shortcut for keyboard mode
     const shortcutRegistered = globalShortcut.register('CommandOrControl+Shift+E', () => {
       console.log('🔥 Global shortcut triggered!')
       handleKeyboardShortcut()
     })
-    
+
     if (shortcutRegistered) {
       console.log('✅ Global shortcut registered: Cmd+Shift+E (Mac) / Ctrl+Shift+E (Others)')
     } else {
       console.log('❌ Failed to register global shortcut')
     }
-    
+
     // Window will only be shown when tray icon is clicked or shortcut is used
     console.log('✅ App ready - window hidden by default, use tray icon or Ctrl+Shift+E to show')
   } else {
     // Test mode: Create window and show it immediately
     createWindow()
-    
+
     // Show window immediately in test mode
     if (mainWindow) {
       console.log('🧪 Test mode: Showing window immediately')
-      
+
       // Center the window for testing
       const position = getCenteredWindowPosition()
       console.log(`🧪 Test mode: Setting window position to x=${position.x}, y=${position.y}`)
@@ -801,8 +854,10 @@ app.whenReady().then(async () => {
       mainWindow.focus()
       mainWindow.setAlwaysOnTop(true) // Make sure it's visible in test mode
       windowMode = 'keyboard' // Set to keyboard mode for testing
-      
-      console.log('✅ Test mode: Window shown, focused, set to always on top, and ready for testing')
+
+      console.log(
+        '✅ Test mode: Window shown, focused, set to always on top, and ready for testing'
+      )
     }
   }
 
@@ -811,11 +866,13 @@ app.whenReady().then(async () => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
-      
+
       // In test mode, show the window immediately
       if (isTestMode && mainWindow) {
         const position = getCenteredWindowPosition()
-        console.log(`🧪 Test mode (activate): Setting window position to x=${position.x}, y=${position.y}`)
+        console.log(
+          `🧪 Test mode (activate): Setting window position to x=${position.x}, y=${position.y}`
+        )
         mainWindow.setPosition(position.x, position.y, false)
         mainWindow.show()
         mainWindow.focus()
@@ -836,12 +893,12 @@ app.on('window-all-closed', () => {
 // Handle before-quit to set the quitting flag
 app.on('before-quit', async () => {
   isQuitting = true
-  
+
   // Shutdown org service
   if (orgService) {
     await orgService.shutdown()
   }
-  
+
   // Unregister global shortcuts
   globalShortcut.unregisterAll()
   console.log('🧹 Global shortcuts unregistered')

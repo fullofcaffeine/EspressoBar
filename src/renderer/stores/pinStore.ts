@@ -12,7 +12,7 @@ export const usePinStore = create<PinStore>()(
       loadPins: async () => {
         try {
           set({ isLoading: true, error: null })
-          
+
           if (!window.electronAPI) {
             throw new Error('Electron API not available')
           }
@@ -21,9 +21,9 @@ export const usePinStore = create<PinStore>()(
           set({ pins, isLoading: false })
         } catch (error) {
           console.error('Failed to load pins:', error)
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to load pins',
-            isLoading: false 
+            isLoading: false
           })
         }
       },
@@ -31,20 +31,20 @@ export const usePinStore = create<PinStore>()(
       addPin: async (content: string) => {
         try {
           set({ error: null })
-          
+
           if (!window.electronAPI) {
             throw new Error('Electron API not available')
           }
 
           const newPin = await window.electronAPI.addPin(content)
-          
+
           // Update local state optimistically
-          set(state => ({
+          set((state) => ({
             pins: [newPin, ...state.pins]
           }))
         } catch (error) {
           console.error('Failed to add pin:', error)
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to add pin'
           })
           throw error // Re-throw so UI can handle it
@@ -55,20 +55,20 @@ export const usePinStore = create<PinStore>()(
       // saveCapture: async (content: string) => {
       //   try {
       //     set({ error: null })
-      //     
+      //
       //     if (!window.electronAPI) {
       //       throw new Error('Electron API not available')
       //     }
 
       //     const newPin = await window.electronAPI.saveCapture(content)
-      //     
+      //
       //     // Update local state optimistically
       //     set(state => ({
       //       pins: [newPin, ...state.pins]
       //     }))
       //   } catch (error) {
       //     console.error('Failed to save capture:', error)
-      //     set({ 
+      //     set({
       //       error: error instanceof Error ? error.message : 'Failed to save capture'
       //     })
       //     throw error // Re-throw so UI can handle it
@@ -79,20 +79,20 @@ export const usePinStore = create<PinStore>()(
       // removePin: async (id: string) => {
       //   try {
       //     set({ error: null })
-      //     
+      //
       //     if (!window.electronAPI) {
       //       throw new Error('Electron API not available')
       //     }
 
       //     await window.electronAPI.removePin(id)
-      //     
+      //
       //     // Update local state optimistically
       //     set(state => ({
       //       pins: state.pins.filter(pin => pin.id !== id)
       //     }))
       //   } catch (error) {
       //     console.error('Failed to remove pin:', error)
-      //     set({ 
+      //     set({
       //       error: error instanceof Error ? error.message : 'Failed to remove pin'
       //     })
       //     throw error // Re-throw so UI can handle it
@@ -102,7 +102,7 @@ export const usePinStore = create<PinStore>()(
       refreshPins: async () => {
         try {
           set({ error: null })
-          
+
           if (!window.electronAPI) {
             throw new Error('Electron API not available')
           }
@@ -111,7 +111,7 @@ export const usePinStore = create<PinStore>()(
           set({ pins })
         } catch (error) {
           console.error('Failed to refresh pins:', error)
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to refresh pins'
           })
         }
@@ -122,7 +122,7 @@ export const usePinStore = create<PinStore>()(
       }
     }),
     {
-      name: 'pin-store', // Name for devtools
+      name: 'pin-store' // Name for devtools
     }
   )
 )
@@ -146,4 +146,4 @@ export const cleanupPinStore = () => {
     unsubscribe()
     unsubscribe = null
   }
-} 
+}

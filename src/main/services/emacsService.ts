@@ -13,7 +13,7 @@ export interface OpenInEmacsResult {
 
 export class EmacsService {
   private emacsClientPaths: string[] = []
-  
+
   constructor() {
     this.initializeEmacsClientPaths()
   }
@@ -23,7 +23,7 @@ export class EmacsService {
    */
   private initializeEmacsClientPaths(): void {
     const platform = os.platform()
-    
+
     switch (platform) {
       case 'darwin': // macOS
         this.emacsClientPaths = [
@@ -34,7 +34,7 @@ export class EmacsService {
           'emacsclient' // PATH lookup
         ]
         break
-        
+
       case 'linux':
         this.emacsClientPaths = [
           '/usr/bin/emacsclient',
@@ -43,7 +43,7 @@ export class EmacsService {
           'emacsclient' // PATH lookup
         ]
         break
-        
+
       case 'win32': // Windows
         this.emacsClientPaths = [
           'C:\\Program Files\\Emacs\\bin\\emacsclient.exe',
@@ -51,7 +51,7 @@ export class EmacsService {
           'emacsclient.exe' // PATH lookup
         ]
         break
-        
+
       default:
         this.emacsClientPaths = ['emacsclient']
     }
@@ -72,7 +72,7 @@ export class EmacsService {
         continue
       }
     }
-    
+
     console.log('❌ No working emacsclient found in common locations')
     return null
   }
@@ -83,7 +83,7 @@ export class EmacsService {
   private async isEmacsServerRunning(emacsClientPath: string): Promise<boolean> {
     try {
       // Try to connect to the server with a quick eval
-      await execAsync(`"${emacsClientPath}" --eval "(message \\"server-test\\")"`);
+      await execAsync(`"${emacsClientPath}" --eval "(message \\"server-test\\")"`)
       return true
     } catch (error) {
       return false
@@ -94,15 +94,18 @@ export class EmacsService {
    * Open file in Emacs at specific line using emacsclient
    */
   async openInEmacs(filePath: string, lineNumber?: number): Promise<OpenInEmacsResult> {
-    console.log(`📝 Attempting to open ${filePath}${lineNumber ? ` at line ${lineNumber}` : ''} in Emacs...`)
-    
+    console.log(
+      `📝 Attempting to open ${filePath}${lineNumber ? ` at line ${lineNumber}` : ''} in Emacs...`
+    )
+
     try {
       // Step 1: Find emacsclient
       const emacsClientPath = await this.findEmacsClient()
       if (!emacsClientPath) {
         return {
           success: false,
-          error: 'emacsclient not found. Please ensure Emacs is installed and emacsclient is available in PATH.'
+          error:
+            'emacsclient not found. Please ensure Emacs is installed and emacsclient is available in PATH.'
         }
       }
 
@@ -114,11 +117,12 @@ export class EmacsService {
         try {
           await execAsync(`"${emacsClientPath}" --eval "(server-start)"`)
           // Give it a moment to start
-          await new Promise(resolve => setTimeout(resolve, 1000))
+          await new Promise((resolve) => setTimeout(resolve, 1000))
         } catch (error) {
           return {
             success: false,
-            error: 'Emacs server is not running. Please start Emacs and run M-x server-start, or add (server-start) to your init file.'
+            error:
+              'Emacs server is not running. Please start Emacs and run M-x server-start, or add (server-start) to your init file.'
           }
         }
       }
@@ -135,7 +139,7 @@ export class EmacsService {
 
       // Step 4: Execute emacsclient
       console.log(`🚀 Executing: ${command.join(' ')}`)
-      
+
       return new Promise((resolve) => {
         const child = spawn(command[0], command.slice(1), {
           detached: true,
@@ -166,7 +170,6 @@ export class EmacsService {
         // Detach the process so it doesn't block Electron
         child.unref()
       })
-
     } catch (error) {
       console.error('❌ Error opening file in Emacs:', error)
       return {
@@ -199,28 +202,28 @@ export class EmacsService {
    */
   getInstallationInstructions(): string {
     const platform = os.platform()
-    
+
     switch (platform) {
       case 'darwin':
         return `To install Emacs on macOS:
 1. Homebrew: brew install emacs
 2. Emacs for Mac OS X: https://emacsformacosx.com
 3. Doom Emacs: Make sure emacsclient is in PATH`
-        
+
       case 'linux':
         return `To install Emacs on Linux:
 1. Ubuntu/Debian: sudo apt install emacs
 2. CentOS/RHEL: sudo yum install emacs
 3. Arch: sudo pacman -S emacs`
-        
+
       case 'win32':
         return `To install Emacs on Windows:
 1. Download from: https://www.gnu.org/software/emacs/download.html
 2. Chocolatey: choco install emacs
 3. Ensure emacsclient.exe is in PATH`
-        
+
       default:
         return 'Please install Emacs and ensure emacsclient is available in PATH'
     }
   }
-} 
+}

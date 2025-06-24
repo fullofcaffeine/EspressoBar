@@ -31,8 +31,6 @@ const PopupView: React.FC = () => {
     return undefined
   }, [error, clearError])
 
-
-
   // TEMPORARILY COMMENTED OUT - Remove pin functionality
   // const handleRemovePin = async (id: string) => {
   //   try {
@@ -45,8 +43,6 @@ const PopupView: React.FC = () => {
   const handleShowPreferences = () => {
     navigate('/preferences')
   }
-
-
 
   const handlePinClick = (pin: Pin) => {
     console.log('App: handlePinClick called with pin:', pin)
@@ -79,11 +75,9 @@ const PopupView: React.FC = () => {
           Error: {error}
         </div>
       )}
-      
+
       {pins.length === 0 ? (
-        <EmptyPopup
-          onShowPreferences={handleShowPreferences}
-        />
+        <EmptyPopup onShowPreferences={handleShowPreferences} />
       ) : (
         <TrayPopup
           pins={pins}
@@ -92,7 +86,7 @@ const PopupView: React.FC = () => {
           onPinClick={handlePinClick}
         />
       )}
-      
+
       <PinDetailModal
         pin={selectedPin}
         isOpen={isPinDetailModalOpen}
@@ -111,13 +105,13 @@ const App: React.FC = () => {
   useEffect(() => {
     initializePinStore()
     console.log('✅ Pin store initialized globally')
-    
+
     // Expose pin store for testing
     if (process.env.NODE_ENV === 'test' || (window as any).electronAPI?.isTestMode) {
-      (window as any).usePinStore = usePinStore
+      ;(window as any).usePinStore = usePinStore
       console.log('🧪 Pin store exposed for testing')
     }
-    
+
     // Cleanup on unmount
     return () => {
       cleanupPinStore()
@@ -134,12 +128,12 @@ const App: React.FC = () => {
           // Check if any dialogs/modals are still open after the delay
           const openDialogs = document.querySelectorAll('[data-state="open"][role="dialog"]')
           const hasOpenModal = openDialogs.length > 0
-          
+
           if (hasOpenModal) {
             console.log('ESC key pressed but modal is open, letting modal handle it')
             return // Modal is still open, don't close window
           }
-          
+
           console.log('ESC key pressed, hiding window')
           if (window.electronAPI && window.electronAPI.hideWindow) {
             window.electronAPI.hideWindow().catch((err) => {
@@ -171,4 +165,4 @@ const App: React.FC = () => {
   )
 }
 
-export default App 
+export default App

@@ -22,13 +22,12 @@ export interface ParsedOrgFile {
 }
 
 export class OrgParserService {
-  
   /**
    * Parse org timestamps from content
    */
   private parseTimestamps(content: string): OrgTimestamp[] {
     const timestamps: OrgTimestamp[] = []
-    
+
     // Patterns for different timestamp types
     const patterns = [
       // Active timestamps: <2024-01-15 Mon> or <2024-01-15 Mon 10:30>
@@ -43,21 +42,24 @@ export class OrgParserService {
       },
       // Scheduled: SCHEDULED: <timestamp>
       {
-        regex: /SCHEDULED:\s*<(\d{4}-\d{2}-\d{2})\s+(\w{3})(?:\s+(\d{1,2}:\d{2})(?:-(\d{1,2}:\d{2}))?)?>/g,
+        regex:
+          /SCHEDULED:\s*<(\d{4}-\d{2}-\d{2})\s+(\w{3})(?:\s+(\d{1,2}:\d{2})(?:-(\d{1,2}:\d{2}))?)?>/g,
         type: 'scheduled' as const
       },
       // Deadline: DEADLINE: <timestamp>
       {
-        regex: /DEADLINE:\s*<(\d{4}-\d{2}-\d{2})\s+(\w{3})(?:\s+(\d{1,2}:\d{2})(?:-(\d{1,2}:\d{2}))?)?>/g,
+        regex:
+          /DEADLINE:\s*<(\d{4}-\d{2}-\d{2})\s+(\w{3})(?:\s+(\d{1,2}:\d{2})(?:-(\d{1,2}:\d{2}))?)?>/g,
         type: 'deadline' as const
       },
       // Date ranges: <date1>--<date2>
       {
-        regex: /<(\d{4}-\d{2}-\d{2})\s+(\w{3})(?:\s+(\d{1,2}:\d{2}))?>\s*--\s*<(\d{4}-\d{2}-\d{2})\s+(\w{3})(?:\s+(\d{1,2}:\d{2}))?>/g,
+        regex:
+          /<(\d{4}-\d{2}-\d{2})\s+(\w{3})(?:\s+(\d{1,2}:\d{2}))?>\s*--\s*<(\d{4}-\d{2}-\d{2})\s+(\w{3})(?:\s+(\d{1,2}:\d{2}))?>/g,
         type: 'range' as const
       }
     ]
-    
+
     for (const pattern of patterns) {
       let match
       while ((match = pattern.regex.exec(content)) !== null) {
@@ -67,7 +69,7 @@ export class OrgParserService {
             datetime: match[1], // Date part
             originalText: match[0]
           }
-          
+
           // Parse start date
           if (pattern.type === 'range') {
             timestamp.startDate = new Date(`${match[1]}${match[3] ? 'T' + match[3] : ''}`)
@@ -79,14 +81,14 @@ export class OrgParserService {
               timestamp.endDate = new Date(`${match[1]}T${match[4]}`)
             }
           }
-          
+
           timestamps.push(timestamp)
         } catch (error) {
           console.warn('Failed to parse timestamp:', match[0], error)
         }
       }
     }
-    
+
     return timestamps
   }
 
@@ -95,18 +97,20 @@ export class OrgParserService {
    */
   async parseOrgFile(filePath: string): Promise<ParsedOrgFile> {
     const startTime = Date.now()
-    
+
     try {
       const content = await fs.readFile(filePath, 'utf8')
       const lines = content.split('\n')
-      
+
       const headlines = this.parseHeadlines(lines)
-      const pinnedHeadlines = headlines.filter(headline => this.isPinnedHeadline(headline))
-      
+      const pinnedHeadlines = headlines.filter((headline) => this.isPinnedHeadline(headline))
+
       const parseTime = Date.now() - startTime
-      
-      console.log(`📄 Parsed ${basename(filePath)}: ${headlines.length} headlines, ${pinnedHeadlines.length} pinned (${parseTime}ms)`)
-      
+
+      console.log(
+        `📄 Parsed ${basename(filePath)}: ${headlines.length} headlines, ${pinnedHeadlines.length} pinned (${parseTime}ms)`
+      )
+
       return {
         filePath,
         headlines,
@@ -128,20 +132,22 @@ export class OrgParserService {
     let currentProperties: Record<string, string> = {}
     let currentDetailedContent: string[] = []
     let inPropertiesBlock = false
-    
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       const lineNumber = i + 1
-      
+
       // Check for headline
-      const headlineMatch = line.match(/^(\*+)\s*(?:(TODO|NEXT|DONE|WAITING|CANCELED)\s+)?(.*?)(?:\s+:([\w:]+):)?$/)
-      
+      const headlineMatch = line.match(
+        /^(\*+)\s*(?:(TODO|NEXT|DONE|WAITING|CANCELED)\s+)?(.*?)(?:\s+:([\w:]+):)?$/
+      )
+
       if (headlineMatch) {
         // Save previous headline if exists
         if (currentHeadline) {
           const fullContent = currentDetailedContent.join('\n').trim()
           const timestamps = this.parseTimestamps(currentHeadline.content! + '\n' + fullContent)
-          
+
           headlines.push({
             level: currentHeadline.level!,
             todo: currentHeadline.todo,
@@ -154,15 +160,15 @@ export class OrgParserService {
             timestamps: timestamps.length > 0 ? timestamps : undefined
           })
         }
-        
+
         // Start new headline
         const stars = headlineMatch[1]
         const todoKeyword = headlineMatch[2]
         const titleAndTags = headlineMatch[3]
         const tagString = headlineMatch[4]
-        
-        const tags = tagString ? tagString.split(':').filter(tag => tag.length > 0) : []
-        
+
+        const tags = tagString ? tagString.split(':').filter((tag) => tag.length > 0) : []
+
         currentHeadline = {
           level: stars.length,
           todo: todoKeyword,
@@ -171,24 +177,24 @@ export class OrgParserService {
           lineNumber,
           content: line
         }
-        
+
         currentProperties = {}
         currentDetailedContent = []
         inPropertiesBlock = false
         continue
       }
-      
+
       // Check for properties drawer
       if (line.trim() === ':PROPERTIES:') {
         inPropertiesBlock = true
         continue
       }
-      
+
       if (line.trim() === ':END:') {
         inPropertiesBlock = false
         continue
       }
-      
+
       // Parse property line
       if (inPropertiesBlock) {
         const propertyMatch = line.match(/^\s*:([^:]+):\s*(.*)$/)
@@ -202,12 +208,12 @@ export class OrgParserService {
         currentDetailedContent.push(line)
       }
     }
-    
+
     // Don't forget the last headline
     if (currentHeadline) {
       const fullContent = currentDetailedContent.join('\n').trim()
       const timestamps = this.parseTimestamps(currentHeadline.content! + '\n' + fullContent)
-      
+
       headlines.push({
         level: currentHeadline.level!,
         todo: currentHeadline.todo,
@@ -220,7 +226,7 @@ export class OrgParserService {
         timestamps: timestamps.length > 0 ? timestamps : undefined
       })
     }
-    
+
     return headlines
   }
 
@@ -229,16 +235,12 @@ export class OrgParserService {
    */
   private isPinnedHeadline(headline: OrgHeadline): boolean {
     // Check properties for pinned flag
-    const hasPropertyPinned = 
-      headline.properties.pinned || 
-      headline.properties.PINNED ||
-      headline.properties.Pinned
-    
+    const hasPropertyPinned =
+      headline.properties.pinned || headline.properties.PINNED || headline.properties.Pinned
+
     // Check tags for pinned tag
-    const hasTagPinned = headline.tags.some(tag => 
-      tag.toLowerCase() === 'pinned'
-    )
-    
+    const hasTagPinned = headline.tags.some((tag) => tag.toLowerCase() === 'pinned')
+
     return !!(hasPropertyPinned || hasTagPinned)
   }
 
@@ -247,8 +249,8 @@ export class OrgParserService {
    */
   convertToPins(filePath: string, headlines: OrgHeadline[]): Pin[] {
     const fileStats = require('fs').statSync(filePath)
-    
-    return headlines.map(headline => {
+
+    return headlines.map((headline) => {
       const pin: Pin = {
         id: this.generatePinId(filePath, headline.lineNumber),
         content: headline.title,
@@ -262,7 +264,7 @@ export class OrgParserService {
         filePath: filePath,
         lineNumber: headline.lineNumber
       }
-      
+
       return pin
     })
   }
@@ -281,7 +283,7 @@ export class OrgParserService {
    */
   async parseMultipleFiles(filePaths: string[]): Promise<Pin[]> {
     const allPins: Pin[] = []
-    
+
     for (const filePath of filePaths) {
       try {
         const parsed = await this.parseOrgFile(filePath)
@@ -292,7 +294,7 @@ export class OrgParserService {
         // Continue with other files even if one fails
       }
     }
-    
+
     return allPins
   }
 
@@ -301,17 +303,17 @@ export class OrgParserService {
    */
   extractPreview(headline: OrgHeadline, maxLength: number = 100): string {
     let preview = headline.title
-    
+
     // Add TODO keyword if present
     if (headline.todo) {
       preview = `${headline.todo} ${preview}`
     }
-    
+
     // Truncate if too long
     if (preview.length > maxLength) {
       preview = preview.substring(0, maxLength - 3) + '...'
     }
-    
+
     return preview
   }
 
@@ -329,10 +331,10 @@ export class OrgParserService {
       const stats = await fs.stat(filePath)
       const content = await fs.readFile(filePath, 'utf8')
       const lines = content.split('\n')
-      
+
       const headlines = this.parseHeadlines(lines)
-      const pinnedCount = headlines.filter(h => this.isPinnedHeadline(h)).length
-      
+      const pinnedCount = headlines.filter((h) => this.isPinnedHeadline(h)).length
+
       return {
         size: stats.size,
         lastModified: stats.mtimeMs,
@@ -356,45 +358,44 @@ export class OrgParserService {
   }> {
     const errors: string[] = []
     const warnings: string[] = []
-    
+
     try {
       const content = await fs.readFile(filePath, 'utf8')
       const lines = content.split('\n')
-      
+
       // Check for basic org structure
       let hasHeadlines = false
       let unclosedProperties = false
-      
+
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
-        
+
         // Check for headlines
         if (line.match(/^\*+\s/)) {
           hasHeadlines = true
         }
-        
+
         // Check for unclosed properties blocks
         if (line.trim() === ':PROPERTIES:') {
           unclosedProperties = true
         }
-        
+
         if (line.trim() === ':END:') {
           unclosedProperties = false
         }
       }
-      
+
       if (!hasHeadlines) {
         warnings.push('No headlines found in org file')
       }
-      
+
       if (unclosedProperties) {
         errors.push('Unclosed properties block found')
       }
-      
     } catch (error) {
       errors.push(`Cannot read file: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
@@ -409,14 +410,15 @@ export class OrgParserService {
     try {
       const parsed = await this.parseOrgFile(filePath)
       const searchLower = searchTerm.toLowerCase()
-      
-      return parsed.headlines.filter(headline =>
-        headline.title.toLowerCase().includes(searchLower) ||
-        headline.tags.some(tag => tag.toLowerCase().includes(searchLower))
+
+      return parsed.headlines.filter(
+        (headline) =>
+          headline.title.toLowerCase().includes(searchLower) ||
+          headline.tags.some((tag) => tag.toLowerCase().includes(searchLower))
       )
     } catch (error) {
       console.error(`❌ Failed to search in ${filePath}:`, error)
       return []
     }
   }
-} 
+}

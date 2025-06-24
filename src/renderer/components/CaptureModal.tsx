@@ -39,7 +39,7 @@ const CaptureModal: React.FC<CaptureModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!content.trim() || isSubmitting) return
 
     setIsSubmitting(true)
@@ -64,7 +64,7 @@ const CaptureModal: React.FC<CaptureModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
+      <DialogContent
         className="w-full max-w-md bg-zinc-800 text-white border-zinc-700"
         data-testid="capture-modal"
       >
@@ -109,4 +109,4 @@ const CaptureModal: React.FC<CaptureModalProps> = ({
   )
 }
 
-export default CaptureModal 
+export default CaptureModal

@@ -11,4 +11,4 @@ root.render(
       <App />
     </HashRouter>
   </React.StrictMode>
-) 
+)

@@ -50,7 +50,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
         if (selectedPath && !orgDirectories.includes(selectedPath)) {
           const newDirectories = [...orgDirectories, selectedPath]
           setOrgDirectories(newDirectories)
-          
+
           if (window.electronAPI?.setOrgDirectories) {
             await window.electronAPI.setOrgDirectories(newDirectories)
           }
@@ -65,9 +65,9 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
 
   const handleRemoveDirectory = async (dirPath: string) => {
     try {
-      const newDirectories = orgDirectories.filter(dir => dir !== dirPath)
+      const newDirectories = orgDirectories.filter((dir) => dir !== dirPath)
       setOrgDirectories(newDirectories)
-      
+
       if (window.electronAPI?.setOrgDirectories) {
         await window.electronAPI.setOrgDirectories(newDirectories)
       }
@@ -78,16 +78,16 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
 
   const handleIncrementalScan = async () => {
     if (isScanning) return
-    
+
     try {
       setIsScanning(true)
       console.log('🔄 Starting incremental scan...')
-      
+
       if (window.electronAPI?.triggerIncrementalScan) {
         const result = await window.electronAPI.triggerIncrementalScan()
         setLastScanResult(result)
         console.log('✅ Incremental scan completed:', result)
-        
+
         // Refresh pins in the store to ensure UI is updated
         await refreshPins()
         console.log('🔄 Pin store refreshed after incremental scan')
@@ -101,16 +101,16 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
 
   const handleFullScan = async () => {
     if (isScanning) return
-    
+
     try {
       setIsScanning(true)
       console.log('🧹 Starting full clean scan...')
-      
+
       if (window.electronAPI?.triggerFullScan) {
         const result = await window.electronAPI.triggerFullScan()
         setLastScanResult(result)
         console.log('✅ Full scan completed:', result)
-        
+
         // Refresh pins in the store to ensure UI is updated
         await refreshPins()
         console.log('🔄 Pin store refreshed after full scan')
@@ -137,7 +137,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
         <p className="text-xs text-zinc-400 mb-3">
           Select directories to scan recursively for org files with pinned items
         </p>
-        
+
         {orgDirectories.length > 0 ? (
           <Card className="bg-zinc-900 border-zinc-700">
             <CardContent className="p-0">
@@ -150,9 +150,9 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
                         {dir}
                       </span>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-zinc-800"
                       onClick={() => handleRemoveDirectory(dir)}
                       title="Remove directory"
@@ -175,9 +175,9 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
             </CardContent>
           </Card>
         )}
-        
-        <Button 
-          variant="outline" 
+
+        <Button
+          variant="outline"
           className="mt-2 bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-600"
           onClick={handleAddDirectory}
           disabled={isLoading}
@@ -194,11 +194,11 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
         <p className="text-xs text-zinc-400 mb-3">
           Manually trigger scans to find pinned items in your org files
         </p>
-        
+
         <div className="space-y-2">
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-600"
               onClick={handleIncrementalScan}
               disabled={isScanning || orgDirectories.length === 0}
@@ -207,9 +207,9 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
               <RotateCcw className="h-4 w-4 mr-2" />
               {isScanning ? 'Scanning...' : 'Quick Scan'}
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-600"
               onClick={handleFullScan}
               disabled={isScanning || orgDirectories.length === 0}
@@ -219,7 +219,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
               {isScanning ? 'Scanning...' : 'Full Scan'}
             </Button>
           </div>
-          
+
           <div className="text-xs text-zinc-500">
             <div className="flex justify-between">
               <span>Quick Scan: Only modified files</span>
@@ -246,7 +246,9 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
                   <div className="text-xs text-zinc-400 space-y-1">
                     <div className="flex justify-between">
                       <span>Files processed:</span>
-                      <span>{lastScanResult.processedFiles}/{lastScanResult.totalFiles}</span>
+                      <span>
+                        {lastScanResult.processedFiles}/{lastScanResult.totalFiles}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Pinned items found:</span>
@@ -307,7 +309,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
           </CardContent>
         </Card>
       </div>
-      
+
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-white">Theme</h3>
         <div className="grid grid-cols-3 gap-2">
@@ -315,11 +317,12 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
             <Button
               key={themeOption}
               onClick={() => setTheme(themeOption)}
-              variant={theme === themeOption ? "default" : "outline"}
+              variant={theme === themeOption ? 'default' : 'outline'}
               size="sm"
-              className={theme === themeOption 
-                ? "bg-indigo-600 hover:bg-indigo-500 text-white border-none" 
-                : "bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-600"
+              className={
+                theme === themeOption
+                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white border-none'
+                  : 'bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-600'
               }
             >
               {themeOption.charAt(0).toUpperCase() + themeOption.slice(1)}
@@ -345,41 +348,43 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
           </Button>
           <div className="flex-1">
             <CardTitle className="text-white">Preferences</CardTitle>
-            <CardDescription className="text-zinc-400">Configure your application settings</CardDescription>
+            <CardDescription className="text-zinc-400">
+              Configure your application settings
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabId)}>
           <TabsList className="grid w-full grid-cols-3 bg-zinc-900 border-zinc-700">
-            <TabsTrigger 
-              value="org-files" 
+            <TabsTrigger
+              value="org-files"
               className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-zinc-400"
             >
               Org Files
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="hotkeys"
               className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-zinc-400"
             >
               Hotkeys
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="advanced"
               className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-zinc-400"
             >
               Advanced
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="org-files" className="mt-4">
             {renderOrgFilesTab()}
           </TabsContent>
-          
+
           <TabsContent value="hotkeys" className="mt-4">
             {renderHotkeysTab()}
           </TabsContent>
-          
+
           <TabsContent value="advanced" className="mt-4">
             {renderAdvancedTab()}
           </TabsContent>
@@ -389,4 +394,4 @@ const Preferences: React.FC<PreferencesProps> = ({ onBack }) => {
   )
 }
 
-export default Preferences 
+export default Preferences

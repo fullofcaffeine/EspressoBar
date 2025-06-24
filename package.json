@@ -62,6 +62,7 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@playwright/test": "^1.53.1",

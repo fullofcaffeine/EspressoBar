@@ -14,7 +14,7 @@ const TrayPopup: React.FC<TrayPopupProps> = ({
 }) => {
   // Debug logging
   console.log('TrayPopup rendering with pins:', pins)
-  
+
   // Format as "HH:MM" like in mock-ups (no relative time)
   const formatTimestamp = (timestamp: number) => {
     const date = new Date(timestamp)
@@ -27,7 +27,7 @@ const TrayPopup: React.FC<TrayPopupProps> = ({
 
   const handlePinClick = (pin: PinType, event: React.MouseEvent) => {
     console.log('TrayPopup: handlePinClick called with pin:', pin)
-    
+
     // Check for command/ctrl click to open detail view
     if (event.metaKey || event.ctrlKey) {
       console.log('TrayPopup: Command/Ctrl click detected, opening detail view')
@@ -36,7 +36,8 @@ const TrayPopup: React.FC<TrayPopupProps> = ({
       // Single click opens in Emacs
       console.log('TrayPopup: Single click detected, opening in Emacs')
       if (pin.filePath && window.electronAPI) {
-        window.electronAPI.openInEmacs(pin.filePath, pin.lineNumber)
+        window.electronAPI
+          .openInEmacs(pin.filePath, pin.lineNumber)
           .then((result) => {
             if (!result.success) {
               console.error('Failed to open in Emacs:', result.error)
@@ -70,19 +71,19 @@ const TrayPopup: React.FC<TrayPopupProps> = ({
             </Button>
           </div>
         </CardHeader>
-        
+
         <CardContent className="pt-0 p-3 pb-4">
           <div className="max-h-80 overflow-y-auto">
             {pins.map((pin, index) => (
               <React.Fragment key={pin.id}>
-                <div 
+                <div
                   className="flex justify-between items-center py-2 px-2 hover:bg-zinc-700 rounded-md cursor-pointer group transition-colors"
                   onClick={(event) => handlePinClick(pin, event)}
                   data-testid="pin-item"
                 >
                   <span className="truncate text-sm text-white">{pin.content}</span>
                   <div className="flex items-center gap-2 ml-3">
-                    <span 
+                    <span
                       className="opacity-60 whitespace-nowrap text-xs text-zinc-400"
                       data-testid="pin-timestamp"
                     >
@@ -113,4 +114,4 @@ const TrayPopup: React.FC<TrayPopupProps> = ({
   )
 }
 
-export default TrayPopup 
+export default TrayPopup

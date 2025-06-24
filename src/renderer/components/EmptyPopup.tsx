@@ -4,12 +4,10 @@ import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import type { EmptyPopupProps } from '../../shared/types'
 
-const EmptyPopup: React.FC<EmptyPopupProps> = ({
-  onShowPreferences
-}) => {
+const EmptyPopup: React.FC<EmptyPopupProps> = ({ onShowPreferences }) => {
   return (
     <div className="w-full h-full flex items-start justify-center p-2">
-      <Card 
+      <Card
         className="w-full max-w-sm bg-zinc-800 text-white border-zinc-700 shadow-xl"
         data-testid="empty-popup"
       >
@@ -29,15 +27,13 @@ const EmptyPopup: React.FC<EmptyPopupProps> = ({
 
           {/* Pin emoji */}
           <span className="text-3xl">📌</span>
-          
+
           {/* Empty state text */}
           <div className="space-y-2">
             <p className="text-sm text-white">Nothing pinned yet</p>
-            <p className="text-xs text-zinc-400">
-              Set up your org directories to see pinned items
-            </p>
+            <p className="text-xs text-zinc-400">Set up your org directories to see pinned items</p>
           </div>
-          
+
           {/* Setup button */}
           <Button
             onClick={onShowPreferences}
@@ -52,4 +48,4 @@ const EmptyPopup: React.FC<EmptyPopupProps> = ({
   )
 }
 
-export default EmptyPopup 
+export default EmptyPopup

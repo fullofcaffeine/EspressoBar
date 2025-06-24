@@ -48,7 +48,9 @@ export class FileCacheService {
   async initialize(): Promise<void> {
     try {
       await this.loadCache()
-      console.log(`✅ File cache initialized with ${Object.keys(this.cache.entries).length} entries`)
+      console.log(
+        `✅ File cache initialized with ${Object.keys(this.cache.entries).length} entries`
+      )
     } catch (error) {
       console.log('📁 No existing cache found, starting with empty cache')
       this.cache = {
@@ -96,13 +98,13 @@ export class FileCacheService {
    * Update cache entry for a file
    */
   async updateCache(
-    filePath: string, 
-    pins: FileCacheEntry['pins'], 
+    filePath: string,
+    pins: FileCacheEntry['pins'],
     contentHash?: string
   ): Promise<void> {
     try {
       const stats = await fs.stat(filePath)
-      
+
       this.cache.entries[filePath] = {
         filePath,
         lastModified: stats.mtimeMs,
@@ -142,7 +144,7 @@ export class FileCacheService {
   getStats(): { totalFiles: number; totalPins: number; lastUpdated: number } {
     const totalFiles = Object.keys(this.cache.entries).length
     const totalPins = Object.values(this.cache.entries).reduce(
-      (sum, entry) => sum + entry.pins.length, 
+      (sum, entry) => sum + entry.pins.length,
       0
     )
 
@@ -163,11 +165,7 @@ export class FileCacheService {
 
     try {
       this.cache.lastUpdated = Date.now()
-      await fs.writeFile(
-        this.cacheFilePath, 
-        JSON.stringify(this.cache, null, 2), 
-        'utf8'
-      )
+      await fs.writeFile(this.cacheFilePath, JSON.stringify(this.cache, null, 2), 'utf8')
       this.isDirty = false
       console.log(`💾 File cache saved to ${this.cacheFilePath}`)
     } catch (error) {
@@ -226,11 +224,11 @@ export class FileCacheService {
     }
 
     if (filesToRemove.length > 0) {
-      filesToRemove.forEach(filePath => {
+      filesToRemove.forEach((filePath) => {
         delete this.cache.entries[filePath]
       })
       this.isDirty = true
       console.log(`🧹 Cleaned up ${filesToRemove.length} stale cache entries`)
     }
   }
-} 
+}

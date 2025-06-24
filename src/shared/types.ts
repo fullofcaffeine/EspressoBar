@@ -73,53 +73,53 @@ export interface IPCPayload<T = any> {
 export const IPC_CHANNELS = {
   // Pin operations
   GET_PINS: 'get-pins',
-  ADD_PIN: 'add-pin', 
+  ADD_PIN: 'add-pin',
   // REMOVE_PIN: 'remove-pin', // TEMPORARILY COMMENTED OUT - Remove pin functionality
   // SAVE_CAPTURE: 'save-capture', // TEMPORARILY COMMENTED OUT - Save capture functionality
-  
+
   // File operations
   REFRESH_PINS: 'refresh-pins',
   WATCH_FILE: 'watch-file',
   UNWATCH_FILE: 'unwatch-file',
-  
+
   // Org directory operations
   GET_ORG_DIRECTORIES: 'get-org-directories',
   SET_ORG_DIRECTORIES: 'set-org-directories',
   PICK_ORG_DIRECTORY: 'pick-org-directory',
-  
+
   // Org scan operations
   TRIGGER_INCREMENTAL_SCAN: 'trigger-incremental-scan',
   TRIGGER_FULL_SCAN: 'trigger-full-scan',
   GET_SCAN_PROGRESS: 'get-scan-progress',
   GET_SCAN_STATS: 'get-scan-stats',
-  
+
   // Settings operations
   GET_SETTINGS: 'get-settings',
   UPDATE_SETTINGS: 'update-settings',
   RESET_SETTINGS: 'reset-settings',
-  
+
   // Preferences
   GET_PREFERENCES: 'get-preferences',
   SET_PREFERENCES: 'set-preferences',
-  
+
   // Window operations
   SHOW_WINDOW: 'show-window',
   HIDE_WINDOW: 'hide-window',
   TOGGLE_WINDOW: 'toggle-window',
-  
+
   // Emacs integration
   OPEN_IN_EMACS: 'open-in-emacs',
-  
+
   // Events (from main to renderer)
   PINS_UPDATED: 'pins-updated',
   FILE_CHANGED: 'file-changed',
   PREFERENCES_UPDATED: 'preferences-updated',
-  
+
   // Test operations
   RESET_TEST_DATA: 'reset-test-data'
 } as const
 
-export type IPCChannel = typeof IPC_CHANNELS[keyof typeof IPC_CHANNELS]
+export type IPCChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS]
 
 // Component props types
 export interface TrayPopupProps {
@@ -146,7 +146,7 @@ export interface PinStore {
   pins: Pin[]
   isLoading: boolean
   error: string | null
-  
+
   // Actions
   loadPins: () => Promise<void>
   addPin: (content: string) => Promise<void>
@@ -160,7 +160,7 @@ export interface PreferencesStore {
   preferences: AppPreferences
   isLoading: boolean
   error: string | null
-  
+
   // Actions
   loadPreferences: () => Promise<void>
   updatePreferences: (preferences: Partial<AppPreferences>) => Promise<void>
@@ -179,7 +179,7 @@ export interface ElectronAPI {
   refreshPins: () => Promise<Pin[]>
 
   // Event listeners for real-time updates
-  onPinsUpdated: (callback: (pins: Pin[]) => void) => (() => void)
+  onPinsUpdated: (callback: (pins: Pin[]) => void) => () => void
 
   // File operations
   watchFile: (filePath: string) => Promise<void>
@@ -211,11 +211,14 @@ export interface ElectronAPI {
   toggleWindow: () => Promise<void>
 
   // Emacs integration
-  openInEmacs: (filePath: string, lineNumber?: number) => Promise<{ success: boolean; error?: string }>
+  openInEmacs: (
+    filePath: string,
+    lineNumber?: number
+  ) => Promise<{ success: boolean; error?: string }>
 
   // Event listeners for other updates
-  onFileChanged: (callback: (filePath: string) => void) => (() => void)
-  onPreferencesUpdated: (callback: (preferences: any) => void) => (() => void)
+  onFileChanged: (callback: (filePath: string) => void) => () => void
+  onPreferencesUpdated: (callback: (preferences: any) => void) => () => void
 
   // Test operations
   resetTestData: () => Promise<void>
@@ -226,4 +229,4 @@ declare global {
   interface Window {
     electronAPI: ElectronAPI
   }
-} 
+}

@@ -11,11 +11,7 @@ interface PinDetailModalProps {
   onClose: () => void
 }
 
-const PinDetailModal: React.FC<PinDetailModalProps> = ({
-  pin,
-  isOpen,
-  onClose
-}) => {
+const PinDetailModal: React.FC<PinDetailModalProps> = ({ pin, isOpen, onClose }) => {
   console.log('PinDetailModal: rendered with pin:', pin, 'isOpen:', isOpen)
   if (!pin) return null
 
@@ -55,29 +51,38 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
     }
 
     try {
-      console.log(`🚀 Opening ${pin.filePath}${pin.lineNumber ? ` at line ${pin.lineNumber}` : ''} in Emacs...`)
-      
+      console.log(
+        `🚀 Opening ${pin.filePath}${pin.lineNumber ? ` at line ${pin.lineNumber}` : ''} in Emacs...`
+      )
+
       // Use emacsclient directly through IPC
       const result = await window.electronAPI.openInEmacs(pin.filePath, pin.lineNumber)
-      
+
       if (result.success) {
         console.log('✅ Successfully opened file in Emacs')
       } else {
         console.error('❌ Failed to open file in Emacs:', result.error)
-        
+
         // Fallback: copy elisp code to clipboard
         const elisp = generateElispCode()
-        navigator.clipboard.writeText(elisp).then(() => {
-          console.log('📋 Emacsclient failed, elisp code copied to clipboard as fallback')
-          alert(`Failed to open in Emacs: ${result.error}\n\nElisp code copied to clipboard as fallback.`)
-        }).catch(clipboardError => {
-          console.error('❌ Failed to copy to clipboard:', clipboardError)
-          alert(`Failed to open in Emacs: ${result.error}\n\nPlease ensure Emacs is running with server-start.`)
-        })
+        navigator.clipboard
+          .writeText(elisp)
+          .then(() => {
+            console.log('📋 Emacsclient failed, elisp code copied to clipboard as fallback')
+            alert(
+              `Failed to open in Emacs: ${result.error}\n\nElisp code copied to clipboard as fallback.`
+            )
+          })
+          .catch((clipboardError) => {
+            console.error('❌ Failed to copy to clipboard:', clipboardError)
+            alert(
+              `Failed to open in Emacs: ${result.error}\n\nPlease ensure Emacs is running with server-start.`
+            )
+          })
       }
     } catch (error) {
       console.error('❌ Error calling openInEmacs:', error)
-      
+
       // Fallback: copy elisp code to clipboard
       const elisp = generateElispCode()
       navigator.clipboard.writeText(elisp).then(() => {
@@ -91,7 +96,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
     if (!pin.filePath) {
       return `(message "No file path available for this pin")`
     }
-    
+
     if (pin.lineNumber && pin.lineNumber > 0) {
       return `(progn
   (find-file "${pin.filePath}")
@@ -111,7 +116,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
+      <DialogContent
         className="max-w-2xl max-h-[80vh] bg-zinc-800 text-white border-zinc-700"
         data-testid="pin-detail-modal"
       >
@@ -126,7 +131,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
           {/* Main Content */}
           <div>
             <h3 className="text-sm font-medium text-zinc-300 mb-2">Content</h3>
-            <div 
+            <div
               className="bg-zinc-900 rounded-md p-3 text-sm whitespace-pre-wrap"
               data-testid="pin-detail-content"
             >
@@ -142,7 +147,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
                 <h3 className="text-sm font-medium text-zinc-300 mb-2">Timestamps</h3>
                 <div className="space-y-2">
                   {pin.orgTimestamps!.map((timestamp, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="flex items-center gap-2 text-sm bg-zinc-900 rounded-md p-2"
                     >
@@ -154,9 +159,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
                         {timestamp.startDate ? formatDate(timestamp.startDate) : timestamp.datetime}
                       </span>
                       {timestamp.endDate && (
-                        <span className="text-zinc-400">
-                          → {formatDate(timestamp.endDate)}
-                        </span>
+                        <span className="text-zinc-400">→ {formatDate(timestamp.endDate)}</span>
                       )}
                     </div>
                   ))}
@@ -173,7 +176,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
                 <h3 className="text-sm font-medium text-zinc-300 mb-2">Tags</h3>
                 <div className="flex flex-wrap gap-1">
                   {pin.tags.map((tag, index) => (
-                    <span 
+                    <span
                       key={index}
                       className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-indigo-600/20 text-indigo-300 border border-indigo-600/30"
                     >
@@ -193,15 +196,11 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
                 <h3 className="text-sm font-medium text-zinc-300 mb-2">Source</h3>
                 <div className="bg-zinc-900 rounded-md p-2 text-sm">
                   <div className="text-zinc-400">File:</div>
-                  <div className="text-white font-mono text-xs break-all">
-                    {pin.filePath}
-                  </div>
+                  <div className="text-white font-mono text-xs break-all">{pin.filePath}</div>
                   {pin.lineNumber && (
                     <>
                       <div className="text-zinc-400 mt-1">Line:</div>
-                      <div className="text-white">
-                        {pin.lineNumber}
-                      </div>
+                      <div className="text-white">{pin.lineNumber}</div>
                     </>
                   )}
                 </div>
@@ -215,7 +214,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
           <div className="text-xs text-zinc-400">
             Created: {new Date(pin.timestamp).toLocaleDateString()}
           </div>
-          
+
           <div className="flex gap-2">
             {pin.filePath && (
               <Button
@@ -228,12 +227,12 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
                 Open in Emacs
               </Button>
             )}
-            
+
             <Button
               onClick={onClose}
               variant="outline"
               size="sm"
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white border-none" 
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white border-none"
             >
               Close
             </Button>
@@ -244,4 +243,4 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({
   )
 }
 
-export default PinDetailModal 
+export default PinDetailModal

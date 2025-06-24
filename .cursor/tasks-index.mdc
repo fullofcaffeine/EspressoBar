@@ -8,3 +8,5 @@ You MUST always check if for the request at hand there are tasks in tasks/tasks-
 Then, use [process-task-list.mdc](mdc:.cursor/process-task-list.mdc) to tackle the tasks.
 
 Again, you SHOULD NOT start working on anything if it's not related to a task in the PRD.
+
+After each task is completed, you should commit the work with a concise and meaningful commit message.

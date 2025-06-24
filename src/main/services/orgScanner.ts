@@ -34,9 +34,9 @@ export class OrgScannerService {
    */
   async scanDirectories(directories: string[]): Promise<OrgFile[]> {
     console.log(`📁 Starting scan of ${directories.length} directories...`)
-    
+
     const allOrgFiles: OrgFile[] = []
-    
+
     for (const directory of directories) {
       try {
         const orgFiles = await this.scanDirectory(directory)
@@ -152,7 +152,9 @@ export class OrgScannerService {
       }
     }
 
-    console.log(`📊 Found ${filesToParse.length} files that need parsing out of ${orgFiles.length} total`)
+    console.log(
+      `📊 Found ${filesToParse.length} files that need parsing out of ${orgFiles.length} total`
+    )
     return filesToParse
   }
 
@@ -203,8 +205,8 @@ export class OrgScannerService {
    */
   filterBySize(orgFiles: OrgFile[], maxSizeMB: number = 10): OrgFile[] {
     const maxSizeBytes = maxSizeMB * 1024 * 1024
-    const filtered = orgFiles.filter(file => file.size <= maxSizeBytes)
-    
+    const filtered = orgFiles.filter((file) => file.size <= maxSizeBytes)
+
     const skipped = orgFiles.length - filtered.length
     if (skipped > 0) {
       console.warn(`⚠️ Skipped ${skipped} org files larger than ${maxSizeMB}MB`)
@@ -224,7 +226,7 @@ export class OrgScannerService {
     cacheStats: { totalFiles: number; totalPins: number; lastUpdated: number }
   }> {
     const orgFiles = await this.scanDirectories(directories)
-    
+
     let totalSize = 0
     let largestFile: { path: string; size: number } | null = null
 
@@ -265,13 +267,13 @@ export class OrgScannerService {
           invalid.push({ path: directory, error: 'Not a directory' })
         }
       } catch (error) {
-        invalid.push({ 
-          path: directory, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        invalid.push({
+          path: directory,
+          error: error instanceof Error ? error.message : 'Unknown error'
         })
       }
     }
 
     return { valid, invalid }
   }
-} 
+}

@@ -14,14 +14,14 @@ export default defineConfig({
     // Capture screenshot on failure
     screenshot: 'only-on-failure',
     // Capture video on failure
-    video: 'retain-on-failure',
+    video: 'retain-on-failure'
   },
   projects: [
     {
       name: 'electron',
       use: {
         // We'll launch Electron directly in our tests
-      },
-    },
-  ],
-}) 
+      }
+    }
+  ]
+})

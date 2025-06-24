@@ -51,7 +51,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     const updateResolvedTheme = () => {
       const resolved = getResolvedTheme()
       setResolvedTheme(resolved)
-      
+
       // Apply theme to document
       const root = document.documentElement
       if (resolved === 'dark') {
@@ -88,9 +88,5 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     resolvedTheme
   }
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  )
-} 
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+}
