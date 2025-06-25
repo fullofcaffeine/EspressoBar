@@ -4,7 +4,7 @@
 
 EspressoBar transforms pinned org-mode headlines into an always-ready tray application. Think of it as your **working memory** - a curated view of your current focus that persists across Emacs sessions and stays accessible from anywhere on your system.
 
-EspressoBar also "guide-coded" with Cursor / Sonnet 4 from scratch. Minor manual edits here and there from me. It's still a WIP.
+It's alpha quality and still a WIP. There will be bugs and UX issues. Use at your own risk.
 
 ![Showcase](./resources/showcase.png)
 
@@ -194,6 +194,8 @@ Your org system is your **external brain**. EspressoBar is your **working memory
 6. Submit a pull request
 
 **Important:** This project uses automated semantic versioning. Please follow [Conventional Commits](https://conventionalcommits.org/) format for your commit messages to ensure proper version bumping and changelog generation.
+
+EspressoBar was "guide-coded" with Cursor / Sonnet 4 from scratch in about a day. Minor manual edits here and there from me. It also serves as an example of how to build a cross-platform Electron app with Cursor and how to setup a basic CI/release flow for it on GitHub.
 
 ## License
 

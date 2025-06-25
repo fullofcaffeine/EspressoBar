@@ -219,6 +219,15 @@
     - feat: → Minor version (1.0.0 → 1.1.0) 
     - feat!: or BREAKING CHANGE: → Major version (1.0.0 → 2.0.0)
   - [x] 8.5.2 Update development workflow documentation
+- [x] 8.6 Fix repository URL configuration issues ✅ COMPLETED
+  - [x] 8.6.1 Update package.json repository URLs from placeholder to actual repository
+  - [x] 8.6.2 Fix Git credentials in release workflow to allow semantic-release to push commits
+  - [x] 8.6.3 Update BUILD.md documentation with correct clone URL
+- [x] 8.7 Fix cross-workflow artifact download authentication ✅ COMPLETED
+  - [x] 8.7.1 Add github-token parameter to download-artifact@v4 step
+  - [x] 8.7.2 Resolve authentication issues when downloading artifacts from workflow_run triggers
+  - [x] 8.7.3 Implement proper artifact organization for semantic-release consumption
+  - [x] 8.7.4 Add comprehensive debugging output for artifact download troubleshooting
 
 ## Current Development Phase: 8. Automated Release Management ✅ COMPLETED
 
@@ -417,6 +426,29 @@
    - `--disable-gpu`
    - `--disable-dev-shm-usage`
    - `--disable-features=VizDisplayCompositor`
+
+### Release Workflow Authentication Fixes ✅ COMPLETED (June 2025)
+**Problem**: Automated releases were being created but contained only source code instead of compiled binaries.
+
+**Root Causes**:
+1. **Repository URL Issues**: semantic-release was trying to access placeholder repository URLs (`yourusername/espressobar`) instead of actual repository
+2. **Cross-Workflow Artifact Authentication**: `actions/download-artifact@v4` requires explicit GitHub token when downloading artifacts from `workflow_run` triggers
+
+**Solutions Implemented**:
+1. **Repository Configuration Fix**:
+   - Updated `package.json` repository URLs from placeholder to actual repository (`fullofcaffeine/EspressoBar`)
+   - Fixed Git credentials in release workflow to allow semantic-release to push version commits
+   - Updated documentation with correct repository URLs
+2. **Artifact Download Authentication**:
+   - Added `github-token: ${{ secrets.GITHUB_TOKEN }}` parameter to `download-artifact@v4` step
+   - Implemented proper artifact organization from CI/CD pipeline to release workflow
+   - Added comprehensive debugging output for troubleshooting artifact download issues
+
+**Results**:
+- ✅ semantic-release can now properly access and interact with the repository
+- ✅ Release workflow successfully downloads all platform binaries (DMG, AppImage, exe, etc.)
+- ✅ GitHub releases now include complete binary distributions for all platforms
+- ✅ Automated version bumping and changelog generation working correctly
 
 ### E2E Test Suite Reliability ✅
 **Problem**: One failing test preventing complete CI success: "REGRESSION: org file pins should have filePath and show 'Open in Emacs' button"
