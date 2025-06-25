@@ -34,6 +34,8 @@
     "preview": "electron-vite preview",
     "pack": "electron-builder",
     "dist": "electron-builder",
+    "pretest:e2e": "npm run build:nocheck",
+    "pretest:e2e:ui": "npm run build:nocheck",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "validate:release": "node scripts/validate-release-setup.js"
