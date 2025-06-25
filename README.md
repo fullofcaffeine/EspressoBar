@@ -6,6 +6,8 @@ EspressoBar transforms pinned org-mode headlines into an always-ready tray appli
 
 EspressoBar also "guide-coded" with Cursor / Sonnet 4 from scratch. Minor manual edits here and there from me. It's still a WIP.
 
+![Showcase](./resources/showcase.png)
+
 ## Features
 
 - **📌 Pin org headlines** with `:pinned:` tag and they appear in your tray
