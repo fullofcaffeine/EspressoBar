@@ -7,6 +7,8 @@ on:
       - completed
     branches:
       - main
+  # Fallback: allow manual triggering for testing
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -39,25 +41,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build application
+      - name: Build base application
         run: npm run build
 
       # Download artifacts from the CI/CD pipeline build job
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v6
         with:
+          workflow: ci-cd.yml
+          workflow_conclusion: success
           path: dist/
-          pattern: espressobar-*
-          merge-multiple: true
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          search_artifacts: true
 
       - name: List downloaded artifacts (debug)
         run: |
           echo "Contents of dist/ directory:"
           ls -la dist/ || echo "dist/ directory does not exist"
-          echo "Contents of current directory:"
-          ls -la .
+          echo "Searching for all build artifacts:"
+          find . -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.tar.gz" | head -20
+          echo "Flattening artifacts to dist/ root:"
+          mkdir -p dist
+          find . -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.tar.gz" | xargs -I {} mv {} dist/ 2>/dev/null || true
+          echo "Final dist/ contents:"
+          ls -la dist/
 
       - name: Release
         env:
