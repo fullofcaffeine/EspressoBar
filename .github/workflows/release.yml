@@ -38,16 +38,40 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build application
-        run: npm run build
-
       # Download artifacts from the CI/CD pipeline build job
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: dist/
+          path: artifacts/
           pattern: espressobar-*
           merge-multiple: true
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Organize artifacts for release
+        run: |
+          mkdir -p dist/
+          
+          echo "Debug: Workflow run ID: ${{ github.event.workflow_run.id }}"
+          echo "Debug: Current working directory:"
+          pwd
+          
+          echo "Debug: Contents of current directory:"
+          ls -la
+          
+          echo "Debug: Contents of artifacts/ directory:"
+          find artifacts/ -type f -ls 2>/dev/null || echo "No artifacts directory found"
+          
+          # Move all binary files to dist/ directory
+          find artifacts/ -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.tar.gz" \) -exec mv {} dist/ \; 2>/dev/null || echo "No binary files found to move"
+          
+          echo "Debug: Contents of dist/ directory after move:"
+          ls -la dist/
+          
+          # If no files were found, try alternative approach
+          if [ -z "$(ls -A dist/ 2>/dev/null)" ]; then
+            echo "Warning: No binary files found in artifacts. Checking for any files..."
+            find artifacts/ -type f -exec echo "Found file: {}" \;
+          fi
 
       - name: Release
         env:
