@@ -53,6 +53,60 @@ if (isTestMode) {
 4. **Normal App Behavior**: All other functionality works exactly the same
 5. **Easy Debugging**: Window appears in taskbar, can be resized
 
+## CI/Headless Mode
+
+### Environment Detection
+
+The tests automatically detect CI environments and apply appropriate headless configurations:
+
+```typescript
+// Base arguments for all environments
+const baseArgs = [
+  path.join(process.cwd(), 'out', 'main', 'index.js'),
+  '--test-mode'
+]
+
+// Additional flags for headless CI environments
+const ciArgs = process.env.CI ? [
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-gpu',
+  '--disable-dev-shm-usage',
+  '--disable-features=VizDisplayCompositor'
+] : []
+
+electronApp = await electron.launch({
+  args: [...baseArgs, ...ciArgs],
+  timeout: 15000
+})
+```
+
+### Environment Behaviors
+
+- **Local Development** (`CI` not set): Runs in headful mode, window visible for debugging
+- **CI Environment** (`CI=true`): Runs in headless mode with necessary flags for Ubuntu runners
+
+### GitHub Actions Setup
+
+The CI workflow includes headless display setup for Electron:
+
+```yaml
+- name: Setup headless display for Electron
+  uses: pyvista/setup-headless-display-action@v3
+
+- name: Run E2E tests
+  run: npm run test:e2e
+  env:
+    DISPLAY: :99.0
+```
+
+### Benefits
+
+1. **Flexible Testing**: Headful locally, headless in CI
+2. **Debug-Friendly**: See actual windows during local development
+3. **CI-Optimized**: Proper headless flags for reliable CI execution
+4. **Automatic Detection**: No manual configuration needed
+
 ## Test Setup
 
 ### Launching in Test Mode

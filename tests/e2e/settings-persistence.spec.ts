@@ -7,6 +7,35 @@ import * as os from 'os'
 let electronApp: ElectronApplication
 let page: Page
 
+// Helper function to launch Electron with appropriate arguments for the environment
+async function launchElectronApp(): Promise<ElectronApplication> {
+  // Base arguments for all environments
+  const baseArgs = [
+    path.join(process.cwd(), 'out', 'main', 'index.js'),
+    '--test-mode'
+  ]
+  
+  // Additional flags for headless CI environments
+  const ciArgs = process.env.CI ? [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--disable-features=VizDisplayCompositor'
+  ] : []
+  
+  if (process.env.CI) {
+    console.log('🤖 CI environment detected - using headless mode with additional flags')
+  } else {
+    console.log('💻 Local environment detected - using headful mode')
+  }
+  
+  return await electron.launch({
+    args: [...baseArgs, ...ciArgs],
+    timeout: 15000
+  })
+}
+
 test.beforeAll(async () => {
   // Clean up any existing storage to start fresh
   const storageDir = path.join(os.homedir(), '.config', 'EspressoBar')
@@ -19,10 +48,7 @@ test.beforeAll(async () => {
 
   // Launch Electron app in test mode
   console.log('🚀 Launching Electron app in test mode for settings persistence tests...')
-  electronApp = await electron.launch({
-    args: [path.join(process.cwd(), 'out', 'main', 'index.js'), '--test-mode'],
-    timeout: 15000
-  })
+  electronApp = await launchElectronApp()
 
   // Wait for the app to be ready
   console.log('⏳ Waiting for app to be ready...')
@@ -99,10 +125,7 @@ test.describe('Settings Persistence', () => {
     await electronApp.close()
 
     // Launch new app instance
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'out', 'main', 'index.js'), '--test-mode'],
-      timeout: 15000
-    })
+    electronApp = await launchElectronApp()
 
     await electronApp.evaluate(async ({ app }) => app.whenReady())
     page = await electronApp.firstWindow()
@@ -161,10 +184,7 @@ test.describe('Settings Persistence', () => {
     await electronApp.close()
 
     // Launch new app instance
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'out', 'main', 'index.js'), '--test-mode'],
-      timeout: 15000
-    })
+    electronApp = await launchElectronApp()
 
     await electronApp.evaluate(async ({ app }) => app.whenReady())
     page = await electronApp.firstWindow()
@@ -221,10 +241,7 @@ test.describe('Settings Persistence', () => {
     // Restart and verify these settings persist
     await electronApp.close()
 
-    electronApp = await electron.launch({
-      args: [path.join(process.cwd(), 'out', 'main', 'index.js'), '--test-mode'],
-      timeout: 15000
-    })
+    electronApp = await launchElectronApp()
 
     await electronApp.evaluate(async ({ app }) => {
       return app.whenReady()

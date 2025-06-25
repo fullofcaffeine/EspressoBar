@@ -31,6 +31,9 @@ jobs:
     - name: Run linting
       run: npm run lint
 
+    - name: Setup headless display for Electron
+      uses: pyvista/setup-headless-display-action@v3
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 
@@ -39,6 +42,9 @@ jobs:
 
     - name: Run E2E tests
       run: npm run test:e2e
+      env:
+        # Additional environment variables for headless Electron
+        DISPLAY: :99.0
 
     - name: Upload test results
       uses: actions/upload-artifact@v4

@@ -19,8 +19,30 @@ test.beforeAll(async () => {
 
   // Launch Electron app in test mode
   console.log('🚀 Launching Electron app in test mode...')
+  
+  // Base arguments for all environments
+  const baseArgs = [
+    path.join(process.cwd(), 'out', 'main', 'index.js'),
+    '--test-mode'
+  ]
+  
+  // Additional flags for headless CI environments
+  const ciArgs = process.env.CI ? [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--disable-features=VizDisplayCompositor'
+  ] : []
+  
+  if (process.env.CI) {
+    console.log('🤖 CI environment detected - using headless mode with additional flags')
+  } else {
+    console.log('💻 Local environment detected - using headful mode')
+  }
+  
   electronApp = await electron.launch({
-    args: [path.join(process.cwd(), 'out', 'main', 'index.js'), '--test-mode'],
+    args: [...baseArgs, ...ciArgs],
     timeout: 15000
   })
 
@@ -386,16 +408,19 @@ test.describe('Pin Detail View End-to-End', () => {
 
     // Step 1: Configure org directory with test files and clear cache
     console.log('📁 Setting up org directory and clearing cache...')
-    await page.evaluate(async () => {
-      const testOrgDir = '/Users/fullofcaffeine/workspace/code/expressobar/test-org-files'
+    
+    // Use the same pattern as other tests - construct path in test context
+    const testOrgDir = path.join(process.cwd(), 'test-org-files')
+    
+    await page.evaluate(async (orgDir) => {
       if ((window as any).electronAPI && (window as any).electronAPI.setOrgDirectories) {
-        await (window as any).electronAPI.setOrgDirectories([testOrgDir])
+        await (window as any).electronAPI.setOrgDirectories([orgDir])
       }
       // Clear cache to force fresh parse that includes all metadata
       if ((window as any).electronAPI && (window as any).electronAPI.resetTestData) {
         await (window as any).electronAPI.resetTestData()
       }
-    })
+    }, testOrgDir)
 
     // Step 2: Navigate to preferences to trigger scan
     console.log('🔍 Navigating to preferences...')

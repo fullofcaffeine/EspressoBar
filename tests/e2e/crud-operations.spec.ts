@@ -19,11 +19,30 @@ test.beforeAll(async () => {
 
   // Launch Electron app in test mode - this bypasses tray behavior
   console.log('🚀 Launching Electron app in test mode...')
+  
+  // Base arguments for all environments
+  const baseArgs = [
+    path.join(process.cwd(), 'out', 'main', 'index.js'),
+    '--test-mode' // This flag makes the window show immediately
+  ]
+  
+  // Additional flags for headless CI environments
+  const ciArgs = process.env.CI ? [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--disable-features=VizDisplayCompositor'
+  ] : []
+  
+  if (process.env.CI) {
+    console.log('🤖 CI environment detected - using headless mode with additional flags')
+  } else {
+    console.log('💻 Local environment detected - using headful mode')
+  }
+  
   electronApp = await electron.launch({
-    args: [
-      path.join(process.cwd(), 'out', 'main', 'index.js'),
-      '--test-mode' // This flag makes the window show immediately
-    ],
+    args: [...baseArgs, ...ciArgs],
     timeout: 15000 // Reduced from 30 seconds
   })
 
