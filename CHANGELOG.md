@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/fullofcaffeine/EspressoBar/compare/v1.0.0...v1.0.1) (2025-06-25)
+
+
+### Bug Fixes
+
+* **ci:** add github-token to artifact download in release workflow ([5bb143a](https://github.com/fullofcaffeine/EspressoBar/commit/5bb143a30a2976872bbe04336ff19102c280c880))
+* **ci:** improve artifact download and organization in release workflow ([8ff995d](https://github.com/fullofcaffeine/EspressoBar/commit/8ff995ddb9489b60e63707e854636b0e3ee6a59d))
+
 # 1.0.0 (2025-06-25)
 
 
