@@ -1,9 +1,6 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
   workflow_run:
     workflows: ["CI/CD Pipeline"]
     types:
@@ -18,7 +15,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success')
+    if: github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
@@ -44,24 +41,13 @@ jobs:
       - name: Build application
         run: npm run build
 
-      # Download artifacts from the build job if this was triggered by workflow_run
+      # Download artifacts from the CI/CD pipeline build job
       - name: Download build artifacts
-        if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
         with:
           path: dist/
           pattern: espressobar-*
           merge-multiple: true
-
-      # Build for all platforms if this is a direct push
-      - name: Build for all platforms (direct push)
-        if: github.event_name == 'push'
-        run: |
-          npm run build:mac
-          npm run build:linux
-          npm run build:win
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release
         env:
