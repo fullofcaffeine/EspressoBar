@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/fullofcaffeine/EspressoBar/compare/v1.0.1...v1.1.0) (2025-06-25)
+
+
+### Features
+
+* implement drag and drop pin ordering with persistence ([32f2508](https://github.com/fullofcaffeine/EspressoBar/commit/32f2508daeec4b6aac7b113e80b8c31455a1717f))
+
 ## [1.0.1](https://github.com/fullofcaffeine/EspressoBar/compare/v1.0.0...v1.0.1) (2025-06-25)
 
 
