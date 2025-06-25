@@ -1,16 +1,98 @@
 import React from 'react'
-import { Settings } from 'lucide-react'
+import { Settings, GripVertical } from 'lucide-react'
 // import { Trash2 } from 'lucide-react' // TEMPORARILY COMMENTED OUT - Remove pin functionality
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Separator } from './ui/separator'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import {
+  CSS,
+} from '@dnd-kit/utilities'
 import type { TrayPopupProps, Pin as PinType } from '../../shared/types'
+
+// Sortable Pin Item Component
+interface SortablePinProps {
+  pin: PinType
+  onPinClick: (pin: PinType, event: React.MouseEvent) => void
+  formatTimestamp: (timestamp: number) => string
+}
+
+const SortablePin: React.FC<SortablePinProps> = ({ pin, onPinClick, formatTimestamp }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: pin.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.8 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex justify-between items-center py-2 px-2 hover:bg-zinc-700 rounded-md cursor-pointer group transition-colors"
+      onClick={(event) => onPinClick(pin, event)}
+      data-testid="pin-item"
+    >
+      {/* Drag Handle - Only visible on hover */}
+      <div
+        className="hidden group-hover:block cursor-grab active:cursor-grabbing mr-2 flex-shrink-0"
+        {...attributes}
+        {...listeners}
+        data-testid="drag-handle"
+      >
+        <GripVertical className="h-4 w-4 text-zinc-400" />
+      </div>
+
+      {/* Pin Content */}
+      <span 
+        className="truncate text-sm text-white flex-grow"
+        data-testid="pin-content"
+      >
+        {pin.content}
+      </span>
+
+      {/* Timestamp */}
+      <div className="flex items-center gap-2 ml-3">
+        <span
+          className="opacity-60 whitespace-nowrap text-xs text-zinc-400"
+          data-testid="pin-timestamp"
+        >
+          {formatTimestamp(pin.timestamp)}
+        </span>
+      </div>
+    </div>
+  )
+}
 
 const TrayPopup: React.FC<TrayPopupProps> = ({
   pins,
   onRemovePin: _onRemovePin, // TEMPORARILY PREFIXED WITH _ TO AVOID UNUSED WARNING - Remove pin functionality
   onShowPreferences,
-  onPinClick
+  onPinClick,
+  onReorderPins
 }) => {
   // Debug logging
   console.log('TrayPopup rendering with pins:', pins)
@@ -52,6 +134,33 @@ const TrayPopup: React.FC<TrayPopupProps> = ({
     }
   }
 
+  // Set up drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  // Handle drag end
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    const oldIndex = pins.findIndex((pin) => pin.id === active.id)
+    const newIndex = pins.findIndex((pin) => pin.id === over.id)
+
+    // Calculate new order using arrayMove
+    const newPins = arrayMove(pins, oldIndex, newIndex)
+    const newPinIds = newPins.map((pin) => pin.id)
+
+    // Call the reorder callback
+    onReorderPins(newPinIds)
+  }
+
   return (
     <div className="w-full h-full flex items-start justify-center p-2">
       <Card className="w-full max-w-sm bg-zinc-800 text-white border-zinc-700 shadow-xl">
@@ -74,39 +183,27 @@ const TrayPopup: React.FC<TrayPopupProps> = ({
 
         <CardContent className="pt-0 p-3 pb-4">
           <div className="max-h-80 overflow-y-auto">
-            {pins.map((pin, index) => (
-              <React.Fragment key={pin.id}>
-                <div
-                  className="flex justify-between items-center py-2 px-2 hover:bg-zinc-700 rounded-md cursor-pointer group transition-colors"
-                  onClick={(event) => handlePinClick(pin, event)}
-                  data-testid="pin-item"
-                >
-                  <span className="truncate text-sm text-white">{pin.content}</span>
-                  <div className="flex items-center gap-2 ml-3">
-                    <span
-                      className="opacity-60 whitespace-nowrap text-xs text-zinc-400"
-                      data-testid="pin-timestamp"
-                    >
-                      {formatTimestamp(pin.timestamp)}
-                    </span>
-                    {/* TEMPORARILY COMMENTED OUT - Remove pin functionality */}
-                    {/* <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-white hover:bg-zinc-600"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onRemovePin(pin.id)
-                      }}
-                      data-testid="delete-pin"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button> */}
-                  </div>
-                </div>
-                {index < pins.length - 1 && <Separator className="my-1 bg-zinc-700" />}
-              </React.Fragment>
-            ))}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={pins.map((pin) => pin.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {pins.map((pin, index) => (
+                  <React.Fragment key={pin.id}>
+                    <SortablePin
+                      pin={pin}
+                      onPinClick={handlePinClick}
+                      formatTimestamp={formatTimestamp}
+                    />
+                    {index < pins.length - 1 && <Separator className="my-1 bg-zinc-700" />}
+                  </React.Fragment>
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
         </CardContent>
       </Card>

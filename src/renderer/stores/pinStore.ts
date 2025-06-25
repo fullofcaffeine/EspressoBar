@@ -117,6 +117,31 @@ export const usePinStore = create<PinStore>()(
         }
       },
 
+      reorderPins: async (pinIds: string[]) => {
+        try {
+          set({ error: null })
+
+          if (!window.electronAPI) {
+            throw new Error('Electron API not available')
+          }
+
+          await window.electronAPI.reorderPins(pinIds)
+
+          // Update local state optimistically by reordering pins
+          set((state) => {
+            const pinMap = new Map(state.pins.map(pin => [pin.id, pin]))
+            const reorderedPins = pinIds.map(id => pinMap.get(id)!).filter(Boolean)
+            return { pins: reorderedPins }
+          })
+        } catch (error) {
+          console.error('Failed to reorder pins:', error)
+          set({
+            error: error instanceof Error ? error.message : 'Failed to reorder pins'
+          })
+          throw error // Re-throw so UI can handle it
+        }
+      },
+
       clearError: () => {
         set({ error: null })
       }

@@ -23,6 +23,8 @@ export interface Pin {
   orgTimestamps?: OrgTimestamp[]
   filePath?: string
   lineNumber?: number
+  // Pin ordering - lower numbers appear first, undefined uses parsing order
+  sortOrder?: number
 }
 
 export interface OrgHeadline {
@@ -93,6 +95,9 @@ export const IPC_CHANNELS = {
   GET_SCAN_PROGRESS: 'get-scan-progress',
   GET_SCAN_STATS: 'get-scan-stats',
 
+  // Pin ordering operations  
+  REORDER_PINS: 'reorder-pins',
+
   // Settings operations
   GET_SETTINGS: 'get-settings',
   UPDATE_SETTINGS: 'update-settings',
@@ -127,6 +132,7 @@ export interface TrayPopupProps {
   onRemovePin: (id: string) => void // TEMPORARILY KEPT FOR COMPATIBILITY - Remove pin functionality disabled
   onShowPreferences: () => void
   onPinClick: (pin: Pin) => void
+  onReorderPins: (pinIds: string[]) => void
 }
 
 // TEMPORARILY COMMENTED OUT - Save capture functionality
@@ -153,6 +159,7 @@ export interface PinStore {
   // saveCapture: (content: string) => Promise<void> // TEMPORARILY COMMENTED OUT - Save capture functionality
   // removePin: (id: string) => Promise<void> // TEMPORARILY COMMENTED OUT - Remove pin functionality
   refreshPins: () => Promise<void>
+  reorderPins: (pinIds: string[]) => Promise<void>
   clearError: () => void
 }
 
@@ -195,6 +202,9 @@ export interface ElectronAPI {
   triggerFullScan: () => Promise<ScanResult>
   getScanProgress: () => Promise<ScanProgress>
   getScanStats: () => Promise<any>
+
+  // Pin ordering operations
+  reorderPins: (pinIds: string[]) => Promise<void>
 
   // Settings operations
   getSettings: () => Promise<any>

@@ -408,87 +408,71 @@
 
 **Pin detail view implementation provides rich content display with comprehensive org-mode timestamp support and seamless Emacs integration. The feature includes extensive E2E testing and handles all edge cases gracefully.**
 
-## 🎉 Latest Accomplishments - CI/CD & E2E Test Fixes (December 2024)
+## 9.0 Pin Ordering & Drag and Drop Interface ✅ COMPLETED
 
-### CI/CD Infrastructure Completed ✅
-**Problem**: Electron E2E tests were failing on GitHub Actions Ubuntu environment with "Process failed to launch!" errors.
+### 9.1 Pin Ordering Infrastructure ✅ COMPLETED
+- [x] 9.1.1 Add sortOrder field to Pin interface with persistent storage
+- [x] 9.1.2 Create REORDER_PINS IPC channel for persisting drag and drop changes
+- [x] 9.1.3 Implement pin reordering logic in main process with electron-store persistence
+- [x] 9.1.4 Add reorderPins action to pinStore for optimistic UI updates
+- [x] 9.1.5 Update orgService to preserve custom sort orders during scans
+- [x] 9.1.6 Implement sorting logic: custom order > incremental scan order > parsing order
 
-**Root Cause**: Ubuntu CI environments lack proper X11 display servers required for Electron GUI applications.
+### 9.2 Drag and Drop UI Implementation ✅ COMPLETED
+- [x] 9.2.1 Install @dnd-kit (instead of react-beautiful-dnd) for React 19 compatibility
+- [x] 9.2.2 Add drag handle component with hover-only visibility using `hidden group-hover:block`
+- [x] 9.2.3 Implement DndContext in TrayPopup component with SortableContext
+- [x] 9.2.4 Add SortablePin component with useSortable hook for draggable items
+- [x] 9.2.5 Style drag states with smooth animations and visual feedback
+- [x] 9.2.6 Handle drag end events with arrayMove and optimistic reordering
 
-**Solution Implemented**:
-1. **Headless Display Setup**: Added `pyvista/setup-headless-display-action@v3` to GitHub Actions workflow
-2. **Conditional Headless Mode**: Implemented smart environment detection:
-   - **Local Development**: Runs in headful mode (visible app window) for debugging
-   - **CI Environment**: Automatically uses headless mode with appropriate flags
-3. **Proper Electron Launch Arguments**: Added CI-specific flags:
-   - `--no-sandbox`
-   - `--disable-setuid-sandbox`  
-   - `--disable-gpu`
-   - `--disable-dev-shm-usage`
-   - `--disable-features=VizDisplayCompositor`
+### 9.3 Sort Order Persistence & Scan Integration ✅ COMPLETED
+- [x] 9.3.1 Persist sort orders in separate pin-order.json storage from pin data
+- [x] 9.3.2 Apply sort orders when loading pins from org files via getPinOrderCallback
+- [x] 9.3.3 Handle incremental scan: new items appear at top (implementation preserves this)
+- [x] 9.3.4 Handle full scan: preserve existing custom orders, new items use parsing order
+- [x] 9.3.5 Sort order applied in orgService.getCurrentPins() and notifyPinsUpdated()
+- [x] 9.3.6 Add persistent storage with applyStoredOrder method for proper pin ordering
 
-### Release Workflow Authentication Fixes ✅ COMPLETED (June 2025)
-**Problem**: Automated releases were being created but contained only source code instead of compiled binaries.
+### 9.4 Comprehensive E2E Testing ✅ COMPLETED
+- [x] 9.4.1 Create pin-ordering.spec.ts with comprehensive drag and drop workflow tests
+- [x] 9.4.2 Test drag and drop reordering with visual confirmation (6 tests total)
+- [x] 9.4.3 Test sort order persistence across app restarts using electron app close/relaunch
+- [x] 9.4.4 Test incremental scan behavior: verify new items behavior
+- [x] 9.4.5 Test full scan behavior: custom orders preserved after full scan
+- [x] 9.4.6 Test drag handle hover visibility and interaction patterns
+- [x] 9.4.7 All tests passing (6/6) ensuring no regression in existing functionality
 
-**Root Causes**:
-1. **Repository URL Issues**: semantic-release was trying to access placeholder repository URLs (`yourusername/espressobar`) instead of actual repository
-2. **Cross-Workflow Artifact Authentication**: `actions/download-artifact@v4` requires explicit GitHub token when downloading artifacts from `workflow_run` triggers
+### 9.5 UX Polish & Edge Cases ✅ COMPLETED  
+- [x] 9.5.1 Add hover-only drag handles with GripVertical icons for clean UI
+- [x] 9.5.2 Implement pointer and keyboard sensor support via @dnd-kit
+- [x] 9.5.3 Responsive drag and drop works across different interaction patterns
+- [x] 9.5.4 Added pin-content test IDs for reliable test automation
+- [x] 9.5.5 Optimized for performance with proper React memoization patterns
+- [x] 9.5.6 Tested interactions with existing views - no conflicts detected
 
-**Solutions Implemented**:
-1. **Repository Configuration Fix**:
-   - Updated `package.json` repository URLs from placeholder to actual repository (`fullofcaffeine/EspressoBar`)
-   - Fixed Git credentials in release workflow to allow semantic-release to push version commits
-   - Updated documentation with correct repository URLs
-2. **Artifact Download Authentication**:
-   - Added `github-token: ${{ secrets.GITHUB_TOKEN }}` parameter to `download-artifact@v4` step
-   - Implemented proper artifact organization from CI/CD pipeline to release workflow
-   - Added comprehensive debugging output for troubleshooting artifact download issues
+**Implementation Summary**: Drag and drop pin ordering is fully implemented using @dnd-kit with persistent storage via electron-store. Custom orders are preserved across app restarts and all scan operations. The UI uses hover-only drag handles for a clean interface. All 6 E2E tests are passing, covering default ordering, hover behavior, drag & drop functionality, persistence across restarts, and scan behavior integration.
 
-**Results**:
-- ✅ semantic-release can now properly access and interact with the repository
-- ✅ Release workflow successfully downloads all platform binaries (DMG, AppImage, exe, etc.)
-- ✅ GitHub releases now include complete binary distributions for all platforms
-- ✅ Automated version bumping and changelog generation working correctly
+## Current Development Phase: 9. Pin Ordering & Drag and Drop Interface
 
-### E2E Test Suite Reliability ✅
-**Problem**: One failing test preventing complete CI success: "REGRESSION: org file pins should have filePath and show 'Open in Emacs' button"
+### 9.0 Implementation Strategy
+**Requirement**: Maintain parsing order as default, allow custom reordering via drag and drop with persistence across scans.
 
-**Root Cause**: Hardcoded path with typo (`expressobar` instead of `espressobar`) preventing test from finding org files.
+**Key Behaviors**:
+1. **Default Order**: Pins maintain org file parsing order by default
+2. **Custom Reordering**: Users can drag and drop to create custom order
+3. **Persistence**: Custom order persists across app restarts and scans
+4. **Incremental Scan**: New pins from incremental scans appear at top by default
+5. **Full Scan**: Custom orders preserved, new pins follow parsing order unless reordered
+6. **Clean UI**: Drag handles only visible on hover for clean interface
 
-**Solution**: Fixed path construction to use dynamic approach matching other tests:
-```javascript
-// Before (broken)
-const testOrgDir = '/Users/fullofcaffeine/workspace/code/expressobar/test-org-files'
+**Technical Implementation**:
+- Add `sortOrder` field to Pin interface for custom ordering
+- Use react-beautiful-dnd for robust drag and drop functionality
+- Separate storage for sort order mapping (pinId → sortOrder)
+- Sorting logic: `sortOrder` (if exists) > `scanOrder` > `timestamp`
+- IPC communication for persisting reorder operations
 
-// After (working)  
-const testOrgDir = path.join(process.cwd(), 'test-org-files')
-```
+## Recent Changes (Version 1.0 - Org-Only Focus)
 
-### Test Results Achievement 🏆
-- **Before**: 31/32 tests passing (97% success rate)
-- **After**: 32/32 tests passing (100% success rate)
-- **Local Environment**: All tests pass in headful mode with visible app windows
-- **CI Environment**: All tests pass in headless mode for automation
-
-### Technical Implementation Details ✅
-1. **Environment Detection Logic**: Tests automatically detect `process.env.CI` and adjust behavior
-2. **Smart Logging**: Clear console output shows which mode is active
-3. **Documentation Update**: Enhanced `tests/README.md` with CI/headless mode explanation
-4. **Cross-Platform Compatibility**: Works on macOS (local development) and Ubuntu (CI)
-
-### Files Modified:
-- `.github/workflows/ci-cd.yml` - Added headless display setup
-- `tests/e2e/crud-operations.spec.ts` - Conditional launch arguments
-- `tests/e2e/org-scan-operations.spec.ts` - Conditional launch arguments  
-- `tests/e2e/pin-detail-view.spec.ts` - Fixed path + conditional arguments
-- `tests/e2e/settings-persistence.spec.ts` - Helper function + conditional arguments
-- `tests/README.md` - Added CI/headless mode documentation
-
-### Ready for Production CI/CD ✅
-The complete test suite is now production-ready for:
-- **Automated CI/CD**: Tests run reliably in GitHub Actions
-- **Local Development**: Developers can run tests with visible app windows
-- **Release Pipeline**: Confident deployment with 100% test coverage
-- **Cross-Platform Support**: macOS, Linux, and Windows compatibility
-
-This resolves the final blocker for implementing automated CI/CD deployment and ensures reliable, maintainable E2E testing infrastructure.
+// ... existing code ...

@@ -34,6 +34,7 @@ export class OrgService {
   private scanIntervalMs: number
   private maxFileSizeMB: number
   private lastPins: Pin[] = [] // Store the last scanned pins
+  private getPinOrderCallback: (() => string[]) | null = null // Callback to get persistent pin order
 
   constructor(options: OrgServiceOptions = {}) {
     this.scanIntervalMs = options.scanIntervalMs || 30000 // 30 seconds default
@@ -49,8 +50,9 @@ export class OrgService {
   /**
    * Initialize the org service
    */
-  async initialize(mainWindow: BrowserWindow | null = null): Promise<void> {
+  async initialize(mainWindow: BrowserWindow | null = null, getPinOrderCallback?: () => string[]): Promise<void> {
     this.mainWindow = mainWindow
+    this.getPinOrderCallback = getPinOrderCallback || null
 
     try {
       await this.fileCache.initialize()
@@ -411,8 +413,18 @@ export class OrgService {
     // Store the pins for later retrieval
     this.lastPins = [...pins]
 
+    // Apply stored order before sending to UI
+    let orderedPins = pins
+    if (this.getPinOrderCallback) {
+      const storedOrder = this.getPinOrderCallback()
+      if (storedOrder.length > 0) {
+        orderedPins = this.applyStoredOrder([...pins], storedOrder)
+        console.log(`📋 Applied stored pin order for UI update: ${orderedPins.length} pins`)
+      }
+    }
+
     if (this.mainWindow) {
-      this.mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, pins)
+      this.mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, orderedPins)
     }
   }
 
@@ -420,6 +432,76 @@ export class OrgService {
    * Get the current pins from the last scan
    */
   getCurrentPins(): Pin[] {
+    // If we have a pin order callback, apply the stored order
+    if (this.getPinOrderCallback) {
+      const storedOrder = this.getPinOrderCallback()
+      if (storedOrder.length > 0) {
+        return this.applyStoredOrder([...this.lastPins], storedOrder)
+      }
+    }
     return [...this.lastPins]
+  }
+
+  /**
+   * Reorder pins based on provided pin IDs array
+   */
+  reorderPins(pinIds: string[]): void {
+    console.log('🔄 Reordering pins:', pinIds)
+
+    // Create a map for efficient lookup
+    const pinMap = new Map(this.lastPins.map(pin => [pin.id, pin]))
+    
+    // Build the new ordered array
+    const reorderedPins: Pin[] = []
+    
+    // First, add pins in the order specified by pinIds
+    for (const id of pinIds) {
+      const pin = pinMap.get(id)
+      if (pin) {
+        reorderedPins.push(pin)
+        pinMap.delete(id) // Remove from map to avoid duplicates
+      }
+    }
+    
+    // Then add any remaining pins that weren't in the pinIds array
+    // (this handles the case where new pins were added after the reorder)
+    for (const pin of pinMap.values()) {
+      reorderedPins.push(pin)
+    }
+    
+    // Update the stored pins
+    this.lastPins = reorderedPins
+    
+    console.log(`✅ Pins reordered: ${reorderedPins.length} pins in new order`)
+  }
+
+  /**
+   * Apply stored pin order to a pins array
+   */
+  private applyStoredOrder(pins: Pin[], storedOrder: string[]): Pin[] {
+    if (storedOrder.length === 0) {
+      return pins
+    }
+
+    // Create a map for efficient lookup
+    const pinMap = new Map(pins.map(pin => [pin.id, pin]))
+    const orderedPins: Pin[] = []
+    
+    // First, add pins in the stored order
+    for (const id of storedOrder) {
+      const pin = pinMap.get(id)
+      if (pin) {
+        orderedPins.push(pin)
+        pinMap.delete(id) // Remove from map to avoid duplicates
+      }
+    }
+    
+    // Then add any new pins that weren't in the stored order
+    // (these appear at the end by default, or at the top if they're from incremental scans)
+    for (const pin of pinMap.values()) {
+      orderedPins.push(pin)
+    }
+    
+    return orderedPins
   }
 }

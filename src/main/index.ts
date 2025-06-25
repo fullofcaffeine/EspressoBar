@@ -358,6 +358,7 @@ interface AppSettings {
 
 // Initialize electron-store for persistent settings (using dynamic import for ESM compatibility)
 let settingsStore: any = null
+let pinOrderStore: any = null
 
 async function initializeSettingsStore() {
   try {
@@ -376,8 +377,18 @@ async function initializeSettingsStore() {
       }
     })
 
+    // Initialize pin ordering store
+    pinOrderStore = new Store({
+      name: 'pin-order',
+      defaults: {
+        order: [] as string[]
+      }
+    })
+
     console.log('✅ Settings store initialized')
     console.log('📁 Settings file location:', (settingsStore as any).path)
+    console.log('✅ Pin order store initialized')
+    console.log('📁 Pin order file location:', (pinOrderStore as any).path)
     return settingsStore
   } catch (error) {
     console.error('❌ Failed to initialize settings store:', error)
@@ -545,6 +556,44 @@ function setupOrgIPCHandlers(): void {
     // Fallback to test pins if org service is not available
     console.log('⚠️ Org service not available, returning test pins')
     return [...testPins]
+  })
+
+  // Reorder pins
+  ipcMain.handle(IPC_CHANNELS.REORDER_PINS, async (_event, pinIds: string[]): Promise<void> => {
+    console.log('🔄 REORDER_PINS requested:', pinIds)
+
+    // Save pin order persistently
+    if (pinOrderStore) {
+      (pinOrderStore as any).set('order', pinIds)
+      console.log('💾 Pin order saved to persistent storage')
+    }
+
+    if (orgService) {
+      // Apply sort order to org service pins
+      orgService.reorderPins(pinIds)
+      console.log('✅ Pin order updated in org service')
+
+      // Notify renderer of updates with new order
+      const currentPins = orgService.getCurrentPins()
+      if (mainWindow) {
+        mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, currentPins)
+      }
+    } else {
+      // Fallback: reorder test pins array
+      const pinMap = new Map(testPins.map(pin => [pin.id, pin]))
+      const reorderedPins = pinIds.map(id => pinMap.get(id)!).filter(Boolean)
+      
+      // Update the testPins array with the new order
+      testPins.length = 0
+      testPins.push(...reorderedPins)
+      
+      console.log('✅ Test pins reordered')
+
+      // Notify renderer of updates
+      if (mainWindow) {
+        mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, [...testPins])
+      }
+    }
   })
 
   // Org directory management
@@ -806,10 +855,18 @@ app.whenReady().then(async () => {
 
     // Initialize org service with main window and saved directories
     if (orgService && mainWindow) {
+      // Create callback to get pin order from persistent storage
+      const getPinOrderCallback = () => {
+        if (pinOrderStore) {
+          return (pinOrderStore as any).get('order') || []
+        }
+        return []
+      }
+
       orgService
-        .initialize(mainWindow)
+        .initialize(mainWindow, getPinOrderCallback)
         .then(async () => {
-          console.log('✅ Org service initialized with main window')
+          console.log('✅ Org service initialized with main window and pin order callback')
 
           // Ensure org directories are loaded from settings
           if (savedSettings.orgDirectories.length > 0 && orgService) {
@@ -841,6 +898,34 @@ app.whenReady().then(async () => {
   } else {
     // Test mode: Create window and show it immediately
     createWindow()
+
+    // Initialize org service in test mode too (for persistence testing)
+    if (orgService && mainWindow) {
+      // Create callback to get pin order from persistent storage
+      const getPinOrderCallback = () => {
+        if (pinOrderStore) {
+          return (pinOrderStore as any).get('order') || []
+        }
+        return []
+      }
+
+      orgService
+        .initialize(mainWindow, getPinOrderCallback)
+        .then(async () => {
+          console.log('🧪 Test mode: Org service initialized with pin order callback')
+
+          // Ensure org directories are loaded from settings
+          if (savedSettings.orgDirectories.length > 0 && orgService) {
+            await orgService.setOrgDirectories(savedSettings.orgDirectories)
+            console.log(
+              `🧪 Test mode: Loaded ${savedSettings.orgDirectories.length} org directories from settings`
+            )
+          }
+        })
+        .catch((error) => {
+          console.error('❌ Test mode: Failed to initialize org service:', error)
+        })
+    }
 
     // Show window immediately in test mode
     if (mainWindow) {

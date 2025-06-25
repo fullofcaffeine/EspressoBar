@@ -13,6 +13,7 @@ const api = {
   // TEMPORARILY COMMENTED OUT - Save capture functionality
   // saveCapture: (content: string): Promise<Pin> => ipcRenderer.invoke('save-capture', content),
   refreshPins: (): Promise<Pin[]> => ipcRenderer.invoke(IPC_CHANNELS.REFRESH_PINS),
+  reorderPins: (pinIds: string[]): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.REORDER_PINS, pinIds),
 
   // Event listeners for real-time updates
   onPinsUpdated: (callback: (pins: Pin[]) => void): (() => void) => {

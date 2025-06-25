@@ -10,7 +10,7 @@ import type { Pin } from '../../shared/types'
 
 const PopupView: React.FC = () => {
   const navigate = useNavigate()
-  const { pins, isLoading, error, loadPins, /* removePin, */ clearError } = usePinStore()
+  const { pins, isLoading, error, loadPins, /* removePin, */ reorderPins, clearError } = usePinStore()
   const [selectedPin, setSelectedPin] = useState<Pin | null>(null)
   const [isPinDetailModalOpen, setIsPinDetailModalOpen] = useState(false)
 
@@ -56,6 +56,14 @@ const PopupView: React.FC = () => {
     setSelectedPin(null)
   }
 
+  const handleReorderPins = async (pinIds: string[]) => {
+    try {
+      await reorderPins(pinIds)
+    } catch (err) {
+      console.error('Failed to reorder pins:', err)
+    }
+  }
+
   // Show loading state
   if (isLoading && pins.length === 0) {
     return (
@@ -84,6 +92,7 @@ const PopupView: React.FC = () => {
           onRemovePin={() => {}} // TEMPORARILY DISABLED - Remove pin functionality
           onShowPreferences={handleShowPreferences}
           onPinClick={handlePinClick}
+          onReorderPins={handleReorderPins}
         />
       )}
 
