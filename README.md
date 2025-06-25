@@ -113,6 +113,25 @@ npm run build      # Production build
 npm run test:e2e   # End-to-end tests
 ```
 
+### Release Management
+
+EspressoBar uses automated semantic versioning with [semantic-release](https://github.com/semantic-release/semantic-release). Releases are automatically created based on commit messages following [Conventional Commits](https://conventionalcommits.org/).
+
+**Commit Message Format:**
+- `fix: description` → Patch release (1.0.0 → 1.0.1)
+- `feat: description` → Minor release (1.0.0 → 1.1.0)
+- `feat!: description` or `BREAKING CHANGE:` → Major release (1.0.0 → 2.0.0)
+
+**Release Process:**
+1. Make changes using conventional commit messages
+2. Push to `main` branch or merge PR
+3. GitHub Actions automatically:
+   - Runs tests and builds for all platforms
+   - Determines next version from commits
+   - Generates changelog
+   - Creates GitHub release with artifacts
+   - Updates package.json version
+
 ### Project Structure
 
 ```
@@ -200,7 +219,10 @@ Your org system is your **external brain**. EspressoBar is your **working memory
 2. Create a feature branch
 3. Add tests for new functionality
 4. Ensure all E2E tests pass
-5. Submit a pull request
+5. **Use conventional commit messages** (see Release Management section)
+6. Submit a pull request
+
+**Important:** This project uses automated semantic versioning. Please follow [Conventional Commits](https://conventionalcommits.org/) format for your commit messages to ensure proper version bumping and changelog generation.
 
 ## License
 

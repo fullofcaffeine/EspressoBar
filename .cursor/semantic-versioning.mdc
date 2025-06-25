@@ -1,0 +1,111 @@
+---
+description: when using git to commit
+globs: 
+alwaysApply: false
+---
+# Cursor Rules for EspressoBar
+
+## Project Overview
+EspressoBar is an Electron-based tray application for managing pinned org-mode headlines. The project uses automated semantic versioning with semantic-release based on conventional commit messages.
+
+## Commit Message Rules
+
+### CRITICAL: Always Use Conventional Commits
+This project uses automated semantic versioning. **ALL commits MUST follow conventional commit format** to ensure proper version bumping and release generation.
+
+### Commit Message Format
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types and Version Impact
+- `fix:` → **Patch** release (1.0.0 → 1.0.1) - Bug fixes
+- `feat:` → **Minor** release (1.0.0 → 1.1.0) - New features  
+- `feat!:` → **Major** release (1.0.0 → 2.0.0) - Breaking changes
+- `BREAKING CHANGE:` in footer → **Major** release
+
+### Common Types
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `docs:` - Documentation only changes
+- `style:` - Code style changes (formatting, semicolons, etc.)
+- `refactor:` - Code refactoring without feature/fix
+- `test:` - Adding or updating tests
+- `chore:` - Maintenance tasks (deps, build config, etc.)
+- `perf:` - Performance improvements
+- `ci:` - CI/CD changes
+
+### Scopes (Optional but Recommended)
+- `(ui)` - Frontend/renderer changes
+- `(main)` - Main process changes
+- `(scanner)` - Org file scanning
+- `(emacs)` - Emacs integration
+- `(store)` - State management
+- `(deps)` - Dependencies
+- `(workflow)` - GitHub Actions/CI
+
+### Examples of Proper Commits
+```bash
+feat(ui): add dark mode toggle in preferences
+fix(scanner): handle malformed org headlines gracefully
+feat!: remove manual pin creation functionality
+docs: update installation instructions
+chore(deps): update electron to v28.2.0
+perf(scanner): optimize file parsing performance
+```
+
+### Breaking Changes
+For major version bumps, use either:
+1. `feat!:` or `fix!:` with exclamation mark
+2. `BREAKING CHANGE:` in commit footer
+
+### Commit Guidelines
+1. **Keep first line ≤ 50 characters**
+2. **Use imperative mood**: "add feature" not "added feature"
+3. **Be specific**: "fix button alignment" vs "fix UI"
+4. **One logical change per commit**
+5. **Reference issues when applicable**: "fixes #123"
+
+### What NOT to Do
+❌ `update stuff`
+❌ `fix bug`
+❌ `wip`
+❌ `changes`
+❌ `v1.2.3` (manual version tags)
+
+### What TO Do
+✅ `feat(ui): add keyboard navigation for pin list`
+✅ `fix(scanner): prevent crash on empty org files`
+✅ `docs: add conventional commits guide`
+✅ `chore: update semantic-release configuration`
+
+## Release Process
+1. Commits with conventional messages are pushed to `main`
+2. CI/CD runs tests and builds for all platforms
+3. semantic-release analyzes commits and determines version
+4. Changelog is generated automatically
+5. GitHub release is created with build artifacts
+6. Version is updated in package.json and committed back
+
+## Important Notes
+- **Never manually edit version in package.json** - handled by semantic-release
+- **Never create manual git tags** - handled automatically
+- **Always validate setup**: `npm run validate:release`
+- **Reference conventional commits guide**: `docs/conventional-commits-guide.md`
+
+## AI Agent Instructions
+When making commits for this project:
+1. **ALWAYS** use conventional commit format
+2. **Choose appropriate type** based on change impact
+3. **Include scope** when relevant (ui, scanner, emacs, etc.)
+4. **Be descriptive** but concise in commit message
+5. **Use imperative mood** in description
+6. **Consider version impact** of your commit type choice
+7. **Group related changes** into single logical commits
+8. **Validate your commit message** against the examples above
+
+Remember: Your commit message directly determines the next version number and appears in the changelog, so make it clear and meaningful! 

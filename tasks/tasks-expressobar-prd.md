@@ -191,6 +191,53 @@
 - [ ] 7.11 Test release workflow with a tagged release
 - [ ] 7.12 Update package.json repository URLs with actual GitHub repository
 
+## 8.0 Automated Semantic Versioning & Releases ✅ COMPLETED
+- [x] 8.1 Install semantic-release and required plugins
+  - [x] 8.1.1 Add semantic-release core package
+  - [x] 8.1.2 Add @semantic-release/changelog for automatic changelog generation
+  - [x] 8.1.3 Add @semantic-release/commit-analyzer for commit message analysis
+  - [x] 8.1.4 Add @semantic-release/git for version commits back to repository
+  - [x] 8.1.5 Add @semantic-release/github for GitHub release creation
+  - [x] 8.1.6 Add @semantic-release/release-notes-generator for release notes
+- [x] 8.2 Configure semantic-release in package.json
+  - [x] 8.2.1 Set main branch for releases
+  - [x] 8.2.2 Configure plugin chain for Electron app releases
+  - [x] 8.2.3 Set up asset patterns for all platform builds (dmg, zip, exe, AppImage, deb, tar.gz)
+  - [x] 8.2.4 Configure git plugin to commit version changes back to repository
+- [x] 8.3 Create dedicated release workflow (.github/workflows/release.yml)
+  - [x] 8.3.1 Set up trigger on main branch pushes and successful CI/CD completion
+  - [x] 8.3.2 Configure proper permissions for release creation and repository writes
+  - [x] 8.3.3 Add artifact download from CI/CD pipeline or direct platform builds
+  - [x] 8.3.4 Integrate semantic-release execution with GitHub token
+- [x] 8.4 Update main CI/CD workflow
+  - [x] 8.4.1 Remove manual release job (now handled by semantic-release)
+  - [x] 8.4.2 Keep artifact uploading for release workflow consumption
+  - [x] 8.4.3 Ensure builds only run on main branch pushes
+- [x] 8.5 Set up conventional commit message standards
+  - [x] 8.5.1 Document commit message format for version bumping
+    - fix: → Patch version (1.0.0 → 1.0.1)
+    - feat: → Minor version (1.0.0 → 1.1.0) 
+    - feat!: or BREAKING CHANGE: → Major version (1.0.0 → 2.0.0)
+  - [x] 8.5.2 Update development workflow documentation
+
+## Current Development Phase: 8. Automated Release Management ✅ COMPLETED
+
+### Semantic Release Implementation Summary ✅ COMPLETED
+- **Automated Versioning**: Commit messages automatically determine version bumps (fix: → patch, feat: → minor, feat!: → major)
+- **Changelog Generation**: Automatically maintained CHANGELOG.md from commit messages
+- **Release Artifacts**: All platform builds (macOS, Windows, Linux) automatically attached to GitHub releases
+- **Workflow Integration**: Separate release workflow triggers after successful CI/CD pipeline
+- **Documentation**: Comprehensive conventional commits guide and setup validation script
+- **Zero Manual Intervention**: Complete automation from commit to published release
+
+### Next Development Priorities
+- [ ] 7.9 Create GitHub repository with proper settings
+- [ ] 7.10 Push initial codebase and verify CI/CD pipeline works  
+- [ ] 7.11 Test release workflow with a tagged release
+- [ ] 6.4 Implement global hotkey registration (default Alt+Space)
+- [ ] 6.5 Add hotkey customization in preferences
+- [ ] 6.6 Implement auto-start toggle functionality
+
 ## 4.11 E2E Test Suite ✅ COMPLETED
 
 ### 4.11.5 E2E Test Framework Improvements 

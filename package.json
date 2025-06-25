@@ -35,7 +35,59 @@
     "pack": "electron-builder",
     "dist": "electron-builder",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "validate:release": "node scripts/validate-release-setup.js"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            {
+              "path": "dist/*.dmg",
+              "label": "macOS DMG"
+            },
+            {
+              "path": "dist/*.zip",
+              "label": "macOS ZIP"
+            },
+            {
+              "path": "dist/*.exe",
+              "label": "Windows Installer"
+            },
+            {
+              "path": "dist/*.AppImage",
+              "label": "Linux AppImage"
+            },
+            {
+              "path": "dist/*.deb",
+              "label": "Linux DEB"
+            },
+            {
+              "path": "dist/*.tar.gz",
+              "label": "Linux TAR.GZ"
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json",
+            "CHANGELOG.md"
+          ],
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ]
+    ]
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
@@ -66,6 +118,11 @@
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@playwright/test": "^1.53.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.3",
+    "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/node": "^22.14.1",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
@@ -80,6 +137,7 @@
     "playwright": "^1.53.1",
     "postcss": "^8.4.49",
     "prettier": "^3.5.3",
+    "semantic-release": "^24.2.5",
     "typescript": "^5.8.3",
     "vite": "^6.2.6"
   },
