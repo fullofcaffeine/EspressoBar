@@ -218,7 +218,7 @@ gh release create v1.0.0 \
 
 ```bash
 # Clone and setup
-git clone https://github.com/yourusername/espressobar.git
+git clone https://github.com/fullofcaffeine/EspressoBar.git
 cd espressobar
 npm install
 

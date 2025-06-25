@@ -7,8 +7,6 @@ on:
       - completed
     branches:
       - main
-  # Fallback: allow manual triggering for testing
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -29,8 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
-          ref: ${{ github.event.workflow_run.head_sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,37 +38,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build base application
+      - name: Build application
         run: npm run build
 
       # Download artifacts from the CI/CD pipeline build job
       - name: Download build artifacts
-        uses: dawidd6/action-download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
-          workflow: ci-cd.yml
-          workflow_conclusion: success
           path: dist/
-          search_artifacts: true
-
-      - name: List downloaded artifacts (debug)
-        run: |
-          echo "Contents of dist/ directory:"
-          ls -la dist/ || echo "dist/ directory does not exist"
-          echo "Searching for all build artifacts:"
-          find . -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.tar.gz" | head -20
-          echo "Flattening artifacts to dist/ root:"
-          mkdir -p dist
-          find . -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.tar.gz" | xargs -I {} mv {} dist/ 2>/dev/null || true
-          echo "Final dist/ contents:"
-          ls -la dist/
+          pattern: espressobar-*
+          merge-multiple: true
 
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Running semantic-release..."
-          echo "Current branch: $(git branch --show-current)"
-          echo "Latest commits:"
-          git log --oneline -5
-          npx semantic-release --debug 
+        run: npx semantic-release 

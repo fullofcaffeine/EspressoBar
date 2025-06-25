@@ -7,10 +7,10 @@
     "name": "Marcelo Serpa",
     "email": "hi@fullofcaffeine.com"
   },
-  "homepage": "https://github.com/yourusername/espressobar",
+  "homepage": "https://github.com/fullofcaffeine/EspressoBar",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/espressobar.git"
+    "url": "https://github.com/fullofcaffeine/EspressoBar.git"
   },
   "license": "GPL-3.0-or-later",
   "scripts": {
