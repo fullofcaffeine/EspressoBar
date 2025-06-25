@@ -132,20 +132,6 @@ EspressoBar uses automated semantic versioning with [semantic-release](https://g
    - Creates GitHub release with artifacts
    - Updates package.json version
 
-### Project Structure
-
-```
-src/
-├── main/           # Electron main process
-│   ├── services/   # Core services (org parser, emacs integration)
-│   └── index.ts    # Main entry point
-├── preload/        # Secure IPC bridge
-├── renderer/       # React frontend
-│   ├── components/ # UI components
-│   ├── stores/     # Zustand state management
-│   └── src/        # App entry point
-└── shared/         # Shared TypeScript types
-```
 
 ### Tech Stack
 
@@ -172,14 +158,7 @@ EspressoBar follows a secure Electron architecture:
 ✅ **Emacs Integration** - Cross-platform emacsclient support with fallbacks  
 ✅ **Settings Persistence** - User preferences saved across sessions  
 ✅ **Background Operation** - Efficient scanning without blocking UI  
-✅ **Test Coverage** - Comprehensive E2E test suite (30+ tests)
-
-### Performance Targets
-
-- **Open latency**: Popup visible in < 200ms
-- **Capture latency**: Entry appended in < 150ms  
-- **Memory footprint**: ≤ 120MB RAM
-- **Stability**: 95% crash-free operation
+✅ **Test Coverage** - Comprehensive E2E test suite (30+ tests). No lower-level unit tests to keep things simple (might introduce if the app grows more complex in the future).
 
 ## Testing
 
@@ -187,20 +166,12 @@ EspressoBar follows a secure Electron architecture:
 ```bash
 npm run test:e2e              # Run all tests
 npm run test:e2e:ui          # Interactive test runner  
-npm run test:e2e:debug       # Debug mode
 ```
 
 ### Integration Testing
 ```bash
 node tests/test-emacs-integration.js  # Test emacs setup
 ```
-
-### Test Categories
-
-- **CRUD Operations**: Pin creation, deletion, UI interactions
-- **Org Scanning**: Directory configuration, file parsing, progress tracking
-- **Pin Details**: Modal display, content rendering, emacs integration  
-- **Settings**: Persistence, preferences, configuration management
 
 ## Philosophy
 
@@ -227,7 +198,3 @@ Your org system is your **external brain**. EspressoBar is your **working memory
 ## License
 
 GPL-3.0-or-later - see LICENSE file for details
-
----
-
-*Built with Electron, React, and a deep appreciation for focused work.*
