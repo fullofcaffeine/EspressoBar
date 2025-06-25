@@ -46,6 +46,7 @@ jobs:
           pattern: espressobar-*
           merge-multiple: true
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Organize artifacts for release
         run: |
