@@ -7,6 +7,83 @@ import * as os from 'os'
 let electronApp: ElectronApplication
 let page: Page
 
+/**
+ * Drag and Drop Helper Functions
+ * 
+ * We provide three approaches for drag and drop, from simplest to most compatible:
+ * 
+ * 1. dragAndDropSimple: Uses Playwright's built-in dragTo() - simplest but may not work with all drag libraries
+ * 2. dragAndDropRobust: Uses dragTo() on the drag handle with force option - better for @dnd-kit compatibility
+ * 3. dragAndDropManual: Full manual control with mouse events - most compatible but most complex
+ * 
+ * The app uses @dnd-kit which sometimes requires specific mouse event sequences.
+ * We use dragAndDropRobust as it provides a good balance of simplicity and compatibility.
+ */
+
+// Helper function for simplified drag and drop using Playwright's built-in method
+async function dragAndDropSimple(source: any, target: any) {
+  // This is the simplest approach - Playwright's built-in dragTo
+  await source.dragTo(target)
+}
+
+// Helper function for more robust drag and drop with better @dnd-kit compatibility
+async function dragAndDropRobust(page: Page, source: any, target: any) {
+  // Hover to ensure drag handle is visible
+  await source.hover()
+  await page.waitForTimeout(300) // Wait for hover transition
+  
+  const dragHandle = source.locator('[data-testid="drag-handle"]')
+  await expect(dragHandle).toBeVisible()
+  
+  // Use Playwright's dragTo on the handle itself
+  // This is more reliable than manual mouse movements
+  await dragHandle.dragTo(target, {
+    // Force bypasses actionability checks which can help with dynamic elements
+    force: true,
+    // Target the center of the drop zone
+    targetPosition: { x: 0, y: 0 }
+  })
+}
+
+// Alternative helper using manual mouse control for maximum compatibility
+async function dragAndDropManual(page: Page, source: any, target: any) {
+  await source.hover()
+  await page.waitForTimeout(300)
+  
+  const dragHandle = source.locator('[data-testid="drag-handle"]')
+  await expect(dragHandle).toBeVisible()
+  
+  // Get center coordinates more reliably
+  const sourceBox = await dragHandle.boundingBox()
+  const targetBox = await target.boundingBox()
+  
+  if (!sourceBox || !targetBox) {
+    throw new Error('Could not get bounding boxes for drag and drop')
+  }
+  
+  // Move to exact center of drag handle
+  const sourceCenter = {
+    x: sourceBox.x + sourceBox.width / 2,
+    y: sourceBox.y + sourceBox.height / 2
+  }
+  
+  const targetCenter = {
+    x: targetBox.x + targetBox.width / 2,
+    y: targetBox.y + targetBox.height / 2
+  }
+  
+  // Perform drag with smoother animation
+  await page.mouse.move(sourceCenter.x, sourceCenter.y)
+  await page.mouse.down()
+  
+  // Move in multiple steps for better compatibility with drag libraries
+  await page.mouse.move(targetCenter.x, targetCenter.y, { steps: 10 })
+  
+  // Small pause before drop to ensure drag state is recognized
+  await page.waitForTimeout(50)
+  await page.mouse.up()
+}
+
 test.beforeAll(async () => {
   // Clean up any existing storage to start fresh
   const storageDir = path.join(os.homedir(), '.config', 'EspressoBar')
@@ -244,37 +321,8 @@ test.describe('Pin Ordering & Drag and Drop', () => {
      const firstPin = pinItems.first()
      const secondPin = pinItems.nth(1)
      
-     // Hover to show drag handle
-     await firstPin.hover()
-     await page.waitForTimeout(300)
-     
-     const dragHandle = firstPin.locator('[data-testid="drag-handle"]')
-     await expect(dragHandle).toBeVisible()
-     
-     // Perform drag and drop using mouse events for @dnd-kit compatibility
-     const dragHandleBounds = await dragHandle.boundingBox()
-     const secondPinBounds = await secondPin.boundingBox()
-     
-     if (dragHandleBounds && secondPinBounds) {
-       // Start drag
-       await page.mouse.move(
-         dragHandleBounds.x + dragHandleBounds.width / 2,
-         dragHandleBounds.y + dragHandleBounds.height / 2
-       )
-       await page.mouse.down()
-       await page.waitForTimeout(100)
-       
-       // Move to target
-       await page.mouse.move(
-         secondPinBounds.x + secondPinBounds.width / 2,
-         secondPinBounds.y + secondPinBounds.height / 2,
-         { steps: 5 }
-       )
-       await page.waitForTimeout(100)
-       
-       // Drop
-       await page.mouse.up()
-     }
+     // Use the simplified drag and drop helper
+     await dragAndDropRobust(page, firstPin, secondPin)
      
      await page.waitForTimeout(1000) // Wait for reordering animation and state updates
      
@@ -322,35 +370,8 @@ test.describe('Pin Ordering & Drag and Drop', () => {
     const firstPin = pinItems.first()
     const secondPin = pinItems.nth(1)
     
-    await firstPin.hover()
-    await page.waitForTimeout(300)
-    
-    const dragHandle = firstPin.locator('[data-testid="drag-handle"]')
-    
-    // Perform drag and drop using mouse events for @dnd-kit compatibility
-    const dragHandleBounds = await dragHandle.boundingBox()
-    const secondPinBounds = await secondPin.boundingBox()
-    
-    if (dragHandleBounds && secondPinBounds) {
-      // Start drag
-      await page.mouse.move(
-        dragHandleBounds.x + dragHandleBounds.width / 2,
-        dragHandleBounds.y + dragHandleBounds.height / 2
-      )
-      await page.mouse.down()
-      await page.waitForTimeout(100)
-      
-      // Move to target
-      await page.mouse.move(
-        secondPinBounds.x + secondPinBounds.width / 2,
-        secondPinBounds.y + secondPinBounds.height / 2,
-        { steps: 5 }
-      )
-      await page.waitForTimeout(100)
-      
-      // Drop
-      await page.mouse.up()
-    }
+    // Use the simplified drag and drop helper
+    await dragAndDropRobust(page, firstPin, secondPin)
     
     await page.waitForTimeout(1000) // Wait for reordering animation and state updates
     
@@ -486,35 +507,8 @@ test.describe('Pin Ordering & Drag and Drop', () => {
     const secondPin = pinItems.nth(1)
     const secondContent = await secondPin.locator('[data-testid="pin-content"]').textContent()
     
-    await firstPin.hover()
-    await page.waitForTimeout(300)
-    
-    const dragHandle = firstPin.locator('[data-testid="drag-handle"]')
-    
-    // Perform drag and drop using mouse events for @dnd-kit compatibility
-    const dragHandleBounds = await dragHandle.boundingBox()
-    const secondPinBounds = await secondPin.boundingBox()
-    
-    if (dragHandleBounds && secondPinBounds) {
-      // Start drag
-      await page.mouse.move(
-        dragHandleBounds.x + dragHandleBounds.width / 2,
-        dragHandleBounds.y + dragHandleBounds.height / 2
-      )
-      await page.mouse.down()
-      await page.waitForTimeout(100)
-      
-      // Move to target
-      await page.mouse.move(
-        secondPinBounds.x + secondPinBounds.width / 2,
-        secondPinBounds.y + secondPinBounds.height / 2,
-        { steps: 5 }
-      )
-      await page.waitForTimeout(100)
-      
-      // Drop
-      await page.mouse.up()
-    }
+    // Use the simplified drag and drop helper
+    await dragAndDropRobust(page, firstPin, secondPin)
     
     await page.waitForTimeout(1000) // Wait for reordering animation and state updates
     
