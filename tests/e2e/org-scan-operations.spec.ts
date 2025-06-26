@@ -239,53 +239,6 @@ async function navigateToMainPopup() {
   await page.waitForTimeout(500)
 }
 
-// Helper function to add a test org directory
-async function addTestOrgDirectory() {
-  const testOrgDir = path.join(os.tmpdir(), 'test-org-files')
-
-  // Create test directory and file if they don't exist
-  if (!fs.existsSync(testOrgDir)) {
-    fs.mkdirSync(testOrgDir, { recursive: true })
-  }
-
-  const testOrgFile = path.join(testOrgDir, 'test.org')
-  // Use the same content structure as the working test file
-  const orgContent = `#+TITLE: Test Org File
-
-* First headline
-This is just a regular headline.
-
-* TODO Important task
-:PROPERTIES:
-:pinned: yes
-:END:
-This task is pinned and should appear in EspressoBar.
-
-* DONE Completed task
-This is a completed task without pinning.
-
-* Meeting notes
-:PROPERTIES:
-:PINNED: true
-:created: 2024-01-15
-:END:
-This headline is also pinned (uppercase property).
-
-* Another regular headline
-Nothing special here.
-
-* Project planning :pinned:
-This headline uses a tag for pinning instead of properties.
-
-* Random thoughts
-Just some notes that are not pinned.
-`
-
-  fs.writeFileSync(testOrgFile, orgContent)
-
-  return testOrgDir
-}
-
 test.describe('Org Scan Operations End-to-End', () => {
   test('should access preferences and see org files tab', async () => {
     console.log('🧪 Testing preferences access...')
