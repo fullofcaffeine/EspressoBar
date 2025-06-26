@@ -225,7 +225,12 @@ export class OrgService {
 
           // Parse the file
           const parsed = await this.parser.parseOrgFile(orgFile.filePath)
-          const pins = this.parser.convertToPins(orgFile.filePath, parsed.pinnedHeadlines)
+          const fileMetadata = {
+            fileTitle: parsed.fileTitle,
+            fileTags: parsed.fileTags,
+            isFilePinned: parsed.isFilePinned
+          }
+          const pins = this.parser.convertToPins(orgFile.filePath, parsed.pinnedHeadlines, fileMetadata)
 
           // Update cache - preserve all metadata for "Open in Emacs" functionality
           const cacheEntry = pins.map((pin) => ({
@@ -238,7 +243,8 @@ export class OrgService {
             orgHeadline: pin.orgHeadline,
             tags: pin.tags,
             detailedContent: pin.detailedContent,
-            orgTimestamps: pin.orgTimestamps
+            orgTimestamps: pin.orgTimestamps,
+            pinType: pin.pinType
           }))
 
           await this.fileCache.updateCache(orgFile.filePath, cacheEntry)
@@ -270,7 +276,8 @@ export class OrgService {
             lineNumber: cached.lineNumber,
             orgHeadline: cached.orgHeadline,
             detailedContent: cached.detailedContent,
-            orgTimestamps: cached.orgTimestamps
+            orgTimestamps: cached.orgTimestamps,
+            pinType: cached.pinType || 'headline' // Default to headline for backward compatibility
           }))
           allPins.push(...pins)
         }

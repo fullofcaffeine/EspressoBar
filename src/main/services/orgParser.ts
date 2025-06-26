@@ -19,6 +19,10 @@ export interface ParsedOrgFile {
   headlines: OrgHeadline[]
   pinnedHeadlines: OrgHeadline[]
   parseTime: number
+  // File-level information
+  fileTitle?: string
+  fileTags?: string[]
+  isFilePinned?: boolean
 }
 
 export class OrgParserService {
@@ -93,6 +97,59 @@ export class OrgParserService {
   }
 
   /**
+   * Parse filetags and file title from org file headers
+   */
+  private parseFileMetadata(lines: string[]): {
+    fileTitle?: string
+    fileTags?: string[]
+    isFilePinned: boolean
+  } {
+    let fileTitle: string | undefined
+    const fileTags: string[] = []
+    let isFilePinned = false
+
+    for (const line of lines) {
+      const trimmedLine = line.trim()
+      
+      // Parse file title: #+title: or #+TITLE:
+      const titleMatch = trimmedLine.match(/^#\+(?:title|TITLE):\s*(.+)$/i)
+      if (titleMatch) {
+        fileTitle = titleMatch[1].trim()
+        continue
+      }
+      
+      // Parse filetags: #+filetags: or #+FILETAGS:
+      const filetagsMatch = trimmedLine.match(/^#\+(?:filetags|FILETAGS):\s*(.+)$/i)
+      if (filetagsMatch) {
+        const tagString = filetagsMatch[1].trim()
+        // Extract tags from :tag1:tag2:tag3: format
+        const tagMatches = tagString.match(/:([^:]+)/g)
+        if (tagMatches) {
+          const extractedTags = tagMatches.map(match => match.substring(1)) // Remove leading :
+          fileTags.push(...extractedTags)
+          
+          // Check if :pinned: is among the tags
+          if (extractedTags.some(tag => tag.toLowerCase() === 'pinned')) {
+            isFilePinned = true
+          }
+        }
+        continue
+      }
+      
+      // Stop parsing file metadata when we hit the first headline
+      if (trimmedLine.match(/^\*+\s/)) {
+        break
+      }
+    }
+
+    return {
+      fileTitle,
+      fileTags: fileTags.length > 0 ? fileTags : undefined,
+      isFilePinned
+    }
+  }
+
+  /**
    * Parse an org file and extract all headlines with their properties
    */
   async parseOrgFile(filePath: string): Promise<ParsedOrgFile> {
@@ -101,6 +158,8 @@ export class OrgParserService {
     try {
       const content = await fs.readFile(filePath, 'utf8')
       const lines = content.split('\n')
+
+      const { fileTitle, fileTags, isFilePinned } = this.parseFileMetadata(lines)
 
       const headlines = this.parseHeadlines(lines)
       const pinnedHeadlines = headlines.filter((headline) => this.isPinnedHeadline(headline))
@@ -115,7 +174,10 @@ export class OrgParserService {
         filePath,
         headlines,
         pinnedHeadlines,
-        parseTime
+        parseTime,
+        fileTitle,
+        fileTags,
+        isFilePinned
       }
     } catch (error) {
       console.error(`❌ Failed to parse org file ${filePath}:`, error)
@@ -245,12 +307,29 @@ export class OrgParserService {
   }
 
   /**
-   * Convert org headlines to Pin objects
+   * Convert org headlines and file metadata to Pin objects
    */
-  convertToPins(filePath: string, headlines: OrgHeadline[]): Pin[] {
+  convertToPins(filePath: string, headlines: OrgHeadline[], fileMetadata?: { fileTitle?: string; fileTags?: string[]; isFilePinned?: boolean }): Pin[] {
     const fileStats = require('fs').statSync(filePath)
+    const pins: Pin[] = []
 
-    return headlines.map((headline) => {
+    // Create file-level pin if the file is pinned via filetags
+    if (fileMetadata?.isFilePinned) {
+      const filePin: Pin = {
+        id: this.generateFilePinId(filePath),
+        content: fileMetadata.fileTitle || this.extractFilenameWithoutExtension(filePath),
+        timestamp: fileStats.mtimeMs,
+        sourceFile: filePath,
+        tags: fileMetadata.fileTags || [],
+        filePath: filePath,
+        lineNumber: 1, // File pins open at line 1
+        pinType: 'file'
+      }
+      pins.push(filePin)
+    }
+
+    // Create headline-level pins
+    const headlinePins = headlines.map((headline) => {
       const pin: Pin = {
         id: this.generatePinId(filePath, headline.lineNumber),
         content: headline.title,
@@ -262,11 +341,15 @@ export class OrgParserService {
         detailedContent: headline.detailedContent,
         orgTimestamps: headline.timestamps,
         filePath: filePath,
-        lineNumber: headline.lineNumber
+        lineNumber: headline.lineNumber,
+        pinType: 'headline'
       }
 
       return pin
     })
+
+    pins.push(...headlinePins)
+    return pins
   }
 
   /**
@@ -276,6 +359,21 @@ export class OrgParserService {
     // Create a consistent ID that won't change unless the file or line changes
     const fileBase = basename(filePath, '.org')
     return `org-${fileBase}-${lineNumber}`
+  }
+
+  /**
+   * Generate a consistent ID for a file-level pin
+   */
+  private generateFilePinId(filePath: string): string {
+    const fileBase = basename(filePath, '.org')
+    return `file-${fileBase}`
+  }
+
+  /**
+   * Extract filename without extension for display purposes
+   */
+  private extractFilenameWithoutExtension(filePath: string): string {
+    return basename(filePath, '.org')
   }
 
   /**

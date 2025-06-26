@@ -1,5 +1,5 @@
 import React from 'react'
-import { Settings, GripVertical, Trash2 } from 'lucide-react'
+import { Settings, GripVertical, Trash2, File } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Separator } from './ui/separator'
@@ -67,12 +67,19 @@ const SortablePin: React.FC<SortablePinProps> = ({ pin, onPinClick, onRemovePin,
       </div>
 
       {/* Pin Content */}
-      <span 
-        className="truncate text-sm text-white flex-grow"
-        data-testid="pin-content"
-      >
-        {pin.content}
-      </span>
+      <div className="flex items-center gap-2 flex-grow">
+        {/* File Pin Indicator */}
+        {pin.pinType === 'file' && (
+          <File className="h-3 w-3 text-blue-400 flex-shrink-0" />
+        )}
+        
+        <span 
+          className="truncate text-sm text-white flex-grow"
+          data-testid="pin-content"
+        >
+          {pin.content}
+        </span>
+      </div>
 
       {/* Timestamp and Actions */}
       <div className="flex items-center gap-2 ml-3">

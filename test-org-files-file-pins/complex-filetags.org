@@ -1,0 +1,10 @@
+#+TITLE: Complex Filetags Test
+#+FILETAGS: :research:pinned:urgent:deadline:
+
+This file tests complex filetag scenarios with multiple tags including pinned.
+
+* Some content here
+  Regular content that's not pinned at headline level.
+
+* More content
+  Also not pinned at headline level. 

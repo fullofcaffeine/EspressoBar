@@ -25,6 +25,8 @@ export interface Pin {
   lineNumber?: number
   // Pin ordering - lower numbers appear first, undefined uses parsing order
   sortOrder?: number
+  // Pin type - distinguishes file-level pins from headline pins
+  pinType?: 'headline' | 'file'
 }
 
 export interface OrgHeadline {

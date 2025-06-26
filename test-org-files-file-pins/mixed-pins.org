@@ -1,0 +1,16 @@
+#+title: Mixed Pin Types
+#+filetags: :work:pinned:project:
+
+This file demonstrates both file-level and headline-level pinning.
+
+* TODO Important task :pinned:
+  This headline is pinned via tag.
+
+* Regular task
+  This task is not pinned.
+
+* NEXT Another pinned item :pinned:
+  This is also pinned via headline tag.
+
+* Final regular task
+  Not pinned either. 

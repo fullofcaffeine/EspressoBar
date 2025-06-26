@@ -24,7 +24,6 @@
     "dev:test": "ELECTRON_TEST_MODE=true electron-vite dev",
     "dev:window": "ELECTRON_TEST_MODE=true electron-vite dev",
     "build:nocheck": "electron-vite build",
-    "test:direct": "npm run build:nocheck && npx electron out/main/index.js --test-mode",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",

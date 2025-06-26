@@ -1,0 +1,13 @@
+#+title: My Important Project
+#+filetags: :pinned:
+
+This is a file that should be pinned via filetags.
+It has no headline pins, only file-level pinning.
+
+Some content here that should be visible in the detail view.
+
+* Regular headline
+  This headline is not pinned.
+
+* Another regular headline
+  This one isn't pinned either. 

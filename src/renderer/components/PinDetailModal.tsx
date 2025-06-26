@@ -1,5 +1,5 @@
 import React from 'react'
-import { ExternalLink, Clock, Calendar, FileText } from 'lucide-react'
+import { ExternalLink, Clock, Calendar, FileText, File } from 'lucide-react'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
 import { Separator } from './ui/separator'
@@ -122,8 +122,17 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ pin, isOpen, onClose })
       >
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <DialogTitle className="text-lg font-semibold text-white flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Pin Details
+            {pin.pinType === 'file' ? (
+              <>
+                <File className="h-5 w-5 text-blue-400" />
+                File Pin Details
+              </>
+            ) : (
+              <>
+                <FileText className="h-5 w-5" />
+                Headline Pin Details
+              </>
+            )}
           </DialogTitle>
         </DialogHeader>
 

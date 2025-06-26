@@ -18,6 +18,7 @@ export interface FileCacheEntry {
     tags?: string[]
     detailedContent?: string
     orgTimestamps?: any[]
+    pinType?: 'headline' | 'file'
   }>
 }
 
