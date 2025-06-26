@@ -476,6 +476,112 @@ export class OrgService {
   }
 
   /**
+   * Remove a pin by ID - removes pinned tag from org file and updates cache
+   */
+  async removePin(pinId: string): Promise<void> {
+    console.log(`🗑️ Removing pin: ${pinId}`)
+
+    // Find the pin in current pins
+    const pin = this.lastPins.find(p => p.id === pinId)
+    if (!pin) {
+      throw new Error(`Pin not found: ${pinId}`)
+    }
+
+    if (!pin.filePath || !pin.lineNumber) {
+      throw new Error(`Pin ${pinId} missing file path or line number - cannot remove from org file`)
+    }
+
+    try {
+      // Read the org file
+      const fs = require('fs')
+      const fileContent = fs.readFileSync(pin.filePath, 'utf8')
+      const lines = fileContent.split('\n')
+
+      if (pin.lineNumber > lines.length) {
+        throw new Error(`Line number ${pin.lineNumber} exceeds file length in ${pin.filePath}`)
+      }
+
+      // Find the headline line (adjust for 0-based indexing)
+      const lineIndex = pin.lineNumber - 1
+      let modified = false
+
+      // Remove :pinned: or :PINNED: from headline tags if present
+      const headlineLine = lines[lineIndex]
+      if (headlineLine.includes(':pinned:') || headlineLine.includes(':PINNED:')) {
+        lines[lineIndex] = headlineLine
+          .replace(/:pinned:/gi, '')
+          .replace(/\s+:/, ':') // Clean up extra spaces before remaining tags
+          .replace(/:\s*$/, '') // Remove trailing : if no other tags
+        modified = true
+        console.log(`🔧 Removed pinned tag from headline at line ${pin.lineNumber}`)
+      }
+
+      // Look for PROPERTIES section below the headline
+      let propStartIndex = -1
+      let propEndIndex = -1
+      
+      for (let i = lineIndex + 1; i < lines.length; i++) {
+        const line = lines[i].trim()
+        if (line === ':PROPERTIES:') {
+          propStartIndex = i
+        } else if (line === ':END:' && propStartIndex !== -1) {
+          propEndIndex = i
+          break
+        } else if (line.startsWith('*') && propStartIndex !== -1) {
+          // Hit another headline without finding :END: - malformed properties
+          break
+        }
+      }
+
+      // Remove pinned property if found
+      if (propStartIndex !== -1 && propEndIndex !== -1) {
+        for (let i = propStartIndex + 1; i < propEndIndex; i++) {
+          const line = lines[i].trim()
+          if (line.match(/^:pinned:\s*\w+/i)) {
+            lines.splice(i, 1)
+            modified = true
+            console.log(`🔧 Removed pinned property at line ${i + 1}`)
+            
+            // If properties section is now empty, remove it entirely
+            if (propEndIndex - propStartIndex === 2) { // Only :PROPERTIES: and :END: left
+              lines.splice(propStartIndex, 2) // Remove both lines
+              console.log(`🔧 Removed empty properties section`)
+            }
+            break
+          }
+        }
+      }
+
+      if (modified) {
+        // Write the modified content back to file
+        fs.writeFileSync(pin.filePath, lines.join('\n'), 'utf8')
+        console.log(`✅ Updated org file: ${pin.filePath}`)
+
+        // Remove file from cache to force re-parsing on next scan
+        this.fileCache.removeFromCache(pin.filePath)
+
+        // Remove pin from local cache
+        this.lastPins = this.lastPins.filter(p => p.id !== pinId)
+
+        // Trigger incremental scan to update UI
+        const scanResult = await this.triggerIncrementalScan()
+        console.log(`🔄 Incremental scan completed after pin removal: ${scanResult.pinnedItems} pins remaining`)
+      } else {
+        console.log(`⚠️ No pinned tags found for pin ${pinId} in ${pin.filePath} at line ${pin.lineNumber}`)
+        
+        // Still remove from local cache even if file wasn't modified
+        this.lastPins = this.lastPins.filter(p => p.id !== pinId)
+        
+        // Notify UI of the change
+        this.notifyPinsUpdated(this.lastPins)
+      }
+    } catch (error) {
+      console.error(`❌ Failed to remove pin ${pinId} from org file:`, error)
+      throw error
+    }
+  }
+
+  /**
    * Apply stored pin order to a pins array
    */
   private applyStoredOrder(pins: Pin[], storedOrder: string[]): Pin[] {

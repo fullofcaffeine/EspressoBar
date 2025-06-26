@@ -75,29 +75,28 @@ export const usePinStore = create<PinStore>()(
       //   }
       // },
 
-      // TEMPORARILY COMMENTED OUT - Remove pin functionality
-      // removePin: async (id: string) => {
-      //   try {
-      //     set({ error: null })
-      //
-      //     if (!window.electronAPI) {
-      //       throw new Error('Electron API not available')
-      //     }
+        removePin: async (id: string) => {
+    try {
+      set({ error: null })
 
-      //     await window.electronAPI.removePin(id)
-      //
-      //     // Update local state optimistically
-      //     set(state => ({
-      //       pins: state.pins.filter(pin => pin.id !== id)
-      //     }))
-      //   } catch (error) {
-      //     console.error('Failed to remove pin:', error)
-      //     set({
-      //       error: error instanceof Error ? error.message : 'Failed to remove pin'
-      //     })
-      //     throw error // Re-throw so UI can handle it
-      //   }
-      // },
+      if (!window.electronAPI) {
+        throw new Error('Electron API not available')
+      }
+
+      await window.electronAPI.removePin(id)
+
+      // Update local state optimistically
+      set(state => ({
+        pins: state.pins.filter(pin => pin.id !== id)
+      }))
+    } catch (error) {
+      console.error('Failed to remove pin:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to remove pin'
+      })
+      throw error // Re-throw so UI can handle it
+    }
+  },
 
       refreshPins: async () => {
         try {

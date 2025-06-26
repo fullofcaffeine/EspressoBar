@@ -497,25 +497,36 @@ function setupOrgIPCHandlers(): void {
     return newPin
   })
 
-  // Remove a pin - TEMPORARILY COMMENTED OUT
-  // ipcMain.handle('remove-pin', async (_event, id: string): Promise<void> => {
-  //   console.log('🗑️  REMOVE_PIN requested:', id)
-  //
-  //   // For now, remove from test pins
-  //   const initialLength = testPins.length
-  //   testPins = testPins.filter(pin => pin.id !== id)
-  //
-  //   if (testPins.length < initialLength) {
-  //     console.log('✅ Pin removed:', id)
-  //
-  //     // Notify renderer of updates
-  //     if (mainWindow) {
-  //       mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, [...testPins])
-  //     }
-  //   } else {
-  //     console.log('⚠️  Pin not found:', id)
-  //   }
-  // })
+  // Remove a pin
+  ipcMain.handle(IPC_CHANNELS.REMOVE_PIN, async (_event, id: string): Promise<void> => {
+    console.log('🗑️ REMOVE_PIN requested:', id)
+
+    try {
+      if (orgService) {
+        // Remove pin using org service
+        await orgService.removePin(id)
+        console.log('✅ Pin removed via org service:', id)
+      } else {
+        // Fallback: remove from test pins
+        const initialLength = testPins.length
+        testPins = testPins.filter(pin => pin.id !== id)
+
+        if (testPins.length < initialLength) {
+          console.log('✅ Pin removed from test pins:', id)
+
+          // Notify renderer of updates
+          if (mainWindow) {
+            mainWindow.webContents.send(IPC_CHANNELS.PINS_UPDATED, [...testPins])
+          }
+        } else {
+          console.log('⚠️ Pin not found in test pins:', id)
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to remove pin:', error)
+      throw error
+    }
+  })
 
   // Save capture (same as add pin for now) - TEMPORARILY COMMENTED OUT
   // ipcMain.handle('save-capture', async (_event, content: string): Promise<Pin> => {

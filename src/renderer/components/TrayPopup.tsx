@@ -1,6 +1,5 @@
 import React from 'react'
-import { Settings, GripVertical } from 'lucide-react'
-// import { Trash2 } from 'lucide-react' // TEMPORARILY COMMENTED OUT - Remove pin functionality
+import { Settings, GripVertical, Trash2 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Separator } from './ui/separator'
@@ -29,10 +28,11 @@ import type { TrayPopupProps, Pin as PinType } from '../../shared/types'
 interface SortablePinProps {
   pin: PinType
   onPinClick: (pin: PinType, event: React.MouseEvent) => void
+  onRemovePin: (id: string) => void
   formatTimestamp: (timestamp: number) => string
 }
 
-const SortablePin: React.FC<SortablePinProps> = ({ pin, onPinClick, formatTimestamp }) => {
+const SortablePin: React.FC<SortablePinProps> = ({ pin, onPinClick, onRemovePin, formatTimestamp }) => {
   const {
     attributes,
     listeners,
@@ -74,7 +74,7 @@ const SortablePin: React.FC<SortablePinProps> = ({ pin, onPinClick, formatTimest
         {pin.content}
       </span>
 
-      {/* Timestamp */}
+      {/* Timestamp and Actions */}
       <div className="flex items-center gap-2 ml-3">
         <span
           className="opacity-60 whitespace-nowrap text-xs text-zinc-400"
@@ -82,6 +82,19 @@ const SortablePin: React.FC<SortablePinProps> = ({ pin, onPinClick, formatTimest
         >
           {formatTimestamp(pin.timestamp)}
         </span>
+        
+        {/* Delete Button - Only visible on hover */}
+        <button
+          className="opacity-0 group-hover:opacity-100 flex items-center justify-center h-5 w-5 rounded text-zinc-400 hover:text-red-400 hover:bg-red-500/20 transition-all duration-200"
+          onClick={(e) => {
+            e.stopPropagation() // Prevent pin click
+            onRemovePin(pin.id)
+          }}
+          data-testid="delete-pin"
+          title="Delete pin"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
       </div>
     </div>
   )
@@ -89,7 +102,7 @@ const SortablePin: React.FC<SortablePinProps> = ({ pin, onPinClick, formatTimest
 
 const TrayPopup: React.FC<TrayPopupProps> = ({
   pins,
-  onRemovePin: _onRemovePin, // TEMPORARILY PREFIXED WITH _ TO AVOID UNUSED WARNING - Remove pin functionality
+  onRemovePin,
   onShowPreferences,
   onPinClick,
   onReorderPins
@@ -197,6 +210,7 @@ const TrayPopup: React.FC<TrayPopupProps> = ({
                     <SortablePin
                       pin={pin}
                       onPinClick={handlePinClick}
+                      onRemovePin={onRemovePin}
                       formatTimestamp={formatTimestamp}
                     />
                     {index < pins.length - 1 && <Separator className="my-1 bg-zinc-700" />}

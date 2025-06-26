@@ -1,19 +1,10 @@
 * TODO Important task
-  :PROPERTIES:
-  :PINNED: t
-  :END:
   This is an important task that needs attention.
 
 * TODO Meeting notes
-  :PROPERTIES:  
-  :PINNED: t
-  :END:
   Notes from the team meeting about project status.
 
 * TODO Project planning
-  :PROPERTIES:
-  :PINNED: t
-  :END:
   Planning for the next quarter's projects and goals.
 
 * Regular task (not pinned)

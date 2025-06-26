@@ -225,32 +225,91 @@ test.describe('CRUD Operations End-to-End', () => {
     // Wait for the app to be ready
     await page.waitForSelector('#root', { timeout: 10000 })
 
+    // Ensure we have test org data set up
+    await page.evaluate(async () => {
+      const testOrgDir = '/Users/fullofcaffeine/workspace/code/espressobar/test-org-files'
+      if ((window as any).electronAPI && (window as any).electronAPI.setOrgDirectories) {
+        await (window as any).electronAPI.setOrgDirectories([testOrgDir])
+      }
+    })
+
+    // Trigger a scan to ensure we have fresh data
+    await page.evaluate(async () => {
+      if ((window as any).electronAPI && (window as any).electronAPI.refreshPins) {
+        await (window as any).electronAPI.refreshPins()
+      }
+    })
+
+    await page.waitForTimeout(2000) // Wait for scan to complete
+
     // Check if we have existing pins from org files
     const pinCount = await page.locator('[data-testid="pin-item"]').count()
     console.log(`🔍 Initial pin count: ${pinCount}`)
 
     if (pinCount === 0) {
-      console.log('⚠️ No pins found - this test requires org files with pinned items. Skipping...')
-      return
+      console.log('⚠️ No pins found - setting up test data first...')
+      
+      // Navigate to preferences and do a full scan
+      await page.evaluate(() => {
+        window.location.hash = '#/preferences'
+        window.dispatchEvent(new Event('hashchange'))
+      })
+      await page.waitForTimeout(1000)
+
+      const fullScanButton = page.locator('[data-testid="full-scan-button"]')
+      if (await fullScanButton.isVisible({ timeout: 3000 })) {
+        await fullScanButton.click()
+        await page.waitForTimeout(3000) // Wait for scan
+      }
+
+      // Navigate back to main view
+      await page.evaluate(() => {
+        window.location.hash = '#/'
+        window.dispatchEvent(new Event('hashchange'))
+      })
+      await page.waitForTimeout(1000)
+
+      const newPinCount = await page.locator('[data-testid="pin-item"]').count()
+      if (newPinCount === 0) {
+        console.log('⚠️ Still no pins found after scan - skipping test')
+        return
+      }
+      console.log(`🔍 After scan pin count: ${newPinCount}`)
     }
 
-    // Find the first pin and delete it
+    // Find the first pin
     const firstPin = page.locator('[data-testid="pin-item"]').first()
     await expect(firstPin).toBeVisible({ timeout: 5000 })
+
+    // Get the pin content for verification
+    const pinContent = await firstPin.locator('[data-testid="pin-content"]').textContent()
+    console.log(`🔍 Pin to delete: "${pinContent}"`)
+
+    // Initially, delete button should not be visible
+    const deleteButton = firstPin.locator('[data-testid="delete-pin"]')
+    expect(await deleteButton.isVisible()).toBe(false)
 
     // Hover over the pin to reveal delete button
     await firstPin.hover()
     await page.waitForTimeout(500)
 
-    // Click the delete button
-    const deleteButton = firstPin.locator('[data-testid="delete-pin"]')
+    // Now delete button should be visible
     await expect(deleteButton).toBeVisible({ timeout: 3000 })
-    await deleteButton.click()
+    console.log('✅ Delete button appears on hover')
 
-    // Verify the pin was deleted (either one less pin or empty state)
-    await page.waitForTimeout(1000)
+    // Get initial pin count for comparison
+    const initialPinCount = await page.locator('[data-testid="pin-item"]').count()
+
+    // Click the delete button
+    await deleteButton.click()
+    console.log('🗑️ Delete button clicked')
+
+    // Wait for deletion to complete
+    await page.waitForTimeout(2000)
+
+    // Verify the pin was deleted from the UI
     const newPinCount = await page.locator('[data-testid="pin-item"]').count()
-    console.log(`🔍 Found ${newPinCount} pins after deletion`)
+    console.log(`🔍 Pin count after deletion: ${newPinCount}`)
 
     if (newPinCount === 0) {
       // Should show empty state
@@ -258,8 +317,34 @@ test.describe('CRUD Operations End-to-End', () => {
       console.log('✅ Pin deleted successfully - now showing empty state')
     } else {
       // Should have one less pin
-      expect(newPinCount).toBe(pinCount - 1)
+      expect(newPinCount).toBe(initialPinCount - 1)
       console.log('✅ Pin deleted successfully - pin count decreased')
+      
+      // Verify the specific pin is no longer in the list
+      const remainingPinContents = await page.locator('[data-testid="pin-content"]').allTextContents()
+      expect(remainingPinContents).not.toContain(pinContent)
+      console.log('✅ Deleted pin no longer appears in list')
+    }
+
+    // Verify that incremental scan doesn't bring the pin back
+    console.log('🔄 Testing incremental scan after deletion...')
+    await page.evaluate(async () => {
+      if ((window as any).electronAPI && (window as any).electronAPI.refreshPins) {
+        await (window as any).electronAPI.refreshPins()
+      }
+    })
+    await page.waitForTimeout(2000)
+
+    // Pin count should remain the same after scan
+    const postScanPinCount = await page.locator('[data-testid="pin-item"]').count()
+    expect(postScanPinCount).toBe(newPinCount)
+    console.log('✅ Incremental scan does not restore deleted pin')
+
+    // Verify the deleted pin content is still not in the list
+    if (postScanPinCount > 0) {
+      const postScanPinContents = await page.locator('[data-testid="pin-content"]').allTextContents()
+      expect(postScanPinContents).not.toContain(pinContent)
+      console.log('✅ Deleted pin content confirmed removed from org file')
     }
   })
 
@@ -341,5 +426,137 @@ test.describe('CRUD Operations End-to-End', () => {
     } else {
       console.log('ℹ️ No pins available to test modal behavior')
     }
+  })
+
+  test('should handle comprehensive pin deletion scenarios', async () => {
+    console.log('🧪 Testing comprehensive pin deletion scenarios...')
+
+    // Wait for the app to be ready
+    await page.waitForSelector('#root', { timeout: 10000 })
+
+    // Ensure we have test org data set up
+    await page.evaluate(async () => {
+      const testOrgDir = '/Users/fullofcaffeine/workspace/code/espressobar/test-org-files'
+      if ((window as any).electronAPI && (window as any).electronAPI.setOrgDirectories) {
+        await (window as any).electronAPI.setOrgDirectories([testOrgDir])
+      }
+    })
+
+    // Trigger a scan to ensure we have fresh data
+    await page.evaluate(async () => {
+      if ((window as any).electronAPI && (window as any).electronAPI.refreshPins) {
+        await (window as any).electronAPI.refreshPins()
+      }
+    })
+
+    await page.waitForTimeout(2000) // Wait for scan to complete
+
+    // Ensure we have at least 2 pins for testing
+    let pinCount = await page.locator('[data-testid="pin-item"]').count()
+    if (pinCount < 2) {
+      console.log('⚠️ Need more pins for comprehensive testing - running full scan...')
+      
+      await page.evaluate(() => {
+        window.location.hash = '#/preferences'
+        window.dispatchEvent(new Event('hashchange'))
+      })
+      await page.waitForTimeout(1000)
+
+      const fullScanButton = page.locator('[data-testid="full-scan-button"]')
+      if (await fullScanButton.isVisible({ timeout: 3000 })) {
+        await fullScanButton.click()
+        await page.waitForTimeout(3000)
+      }
+
+      await page.evaluate(() => {
+        window.location.hash = '#/'
+        window.dispatchEvent(new Event('hashchange'))
+      })
+      await page.waitForTimeout(1000)
+
+      pinCount = await page.locator('[data-testid="pin-item"]').count()
+      if (pinCount < 2) {
+        console.log('⚠️ Still insufficient pins - skipping comprehensive test')
+        return
+      }
+    }
+
+    console.log(`🔍 Starting with ${pinCount} pins`)
+
+    // Test 1: Delete button visibility behavior
+    console.log('🧪 Test 1: Delete button visibility on hover')
+    const firstPin = page.locator('[data-testid="pin-item"]').first()
+    
+    // Delete button should have opacity 0 initially (visually hidden)
+    let deleteButton = firstPin.locator('[data-testid="delete-pin"]')
+    const initialOpacity = await deleteButton.evaluate(el => window.getComputedStyle(el).opacity)
+    expect(initialOpacity).toBe('0')
+    
+    // Hover to show delete button
+    await firstPin.hover()
+    await page.waitForTimeout(300)
+    await expect(deleteButton).toBeVisible({ timeout: 2000 })
+    
+    // Move away to hide delete button
+    await page.locator('body').hover() // Hover away from pin
+    await page.waitForTimeout(300)
+    const finalOpacity = await deleteButton.evaluate(el => window.getComputedStyle(el).opacity)
+    expect(finalOpacity).toBe('0')
+    console.log('✅ Delete button visibility behavior correct')
+
+    // Test 2: Delete middle pin (to test list reordering)
+    if (pinCount >= 3) {
+      console.log('🧪 Test 2: Delete middle pin')
+      const middlePin = page.locator('[data-testid="pin-item"]').nth(1)
+      const middlePinContent = await middlePin.locator('[data-testid="pin-content"]').textContent()
+      
+      await middlePin.hover()
+      await page.waitForTimeout(300)
+      deleteButton = middlePin.locator('[data-testid="delete-pin"]')
+      await deleteButton.click()
+      await page.waitForTimeout(2000)
+      
+      const remainingContents = await page.locator('[data-testid="pin-content"]').allTextContents()
+      expect(remainingContents).not.toContain(middlePinContent)
+      console.log('✅ Middle pin deleted successfully')
+      
+      pinCount = await page.locator('[data-testid="pin-item"]').count()
+    }
+
+    // Test 3: Delete all remaining pins one by one
+    console.log('🧪 Test 3: Delete all remaining pins')
+    while (pinCount > 0) {
+      const currentPin = page.locator('[data-testid="pin-item"]').first()
+      await currentPin.hover()
+      await page.waitForTimeout(300)
+      
+      deleteButton = currentPin.locator('[data-testid="delete-pin"]')
+      await deleteButton.click()
+      await page.waitForTimeout(1500)
+      
+      const newCount = await page.locator('[data-testid="pin-item"]').count()
+      expect(newCount).toBe(pinCount - 1)
+      pinCount = newCount
+      console.log(`🔍 Pins remaining: ${pinCount}`)
+    }
+
+    // Test 4: Verify empty state is shown
+    console.log('🧪 Test 4: Verify empty state after deleting all pins')
+    const emptyStateVisible = await page.locator('text=Nothing pinned yet').isVisible({ timeout: 3000 })
+    expect(emptyStateVisible).toBe(true)
+    console.log('✅ Empty state displayed correctly')
+
+    // Test 5: Verify scan doesn't restore deleted pins
+    console.log('🧪 Test 5: Verify scan doesn\'t restore deleted pins')
+    await page.evaluate(async () => {
+      if ((window as any).electronAPI && (window as any).electronAPI.refreshPins) {
+        await (window as any).electronAPI.refreshPins()
+      }
+    })
+    await page.waitForTimeout(2000)
+
+    const finalPinCount = await page.locator('[data-testid="pin-item"]').count()
+    expect(finalPinCount).toBe(0)
+    console.log('✅ Deleted pins remain deleted after scan')
   })
 })

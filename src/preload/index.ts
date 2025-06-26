@@ -8,8 +8,7 @@ const api = {
   // Pin operations
   getPins: (): Promise<Pin[]> => ipcRenderer.invoke(IPC_CHANNELS.GET_PINS),
   addPin: (content: string): Promise<Pin> => ipcRenderer.invoke(IPC_CHANNELS.ADD_PIN, content),
-  // TEMPORARILY COMMENTED OUT - Remove pin functionality
-  // removePin: (id: string): Promise<void> => ipcRenderer.invoke('remove-pin', id),
+  removePin: (id: string): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.REMOVE_PIN, id),
   // TEMPORARILY COMMENTED OUT - Save capture functionality
   // saveCapture: (content: string): Promise<Pin> => ipcRenderer.invoke('save-capture', content),
   refreshPins: (): Promise<Pin[]> => ipcRenderer.invoke(IPC_CHANNELS.REFRESH_PINS),

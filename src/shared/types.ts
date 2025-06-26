@@ -76,7 +76,7 @@ export const IPC_CHANNELS = {
   // Pin operations
   GET_PINS: 'get-pins',
   ADD_PIN: 'add-pin',
-  // REMOVE_PIN: 'remove-pin', // TEMPORARILY COMMENTED OUT - Remove pin functionality
+  REMOVE_PIN: 'remove-pin',
   // SAVE_CAPTURE: 'save-capture', // TEMPORARILY COMMENTED OUT - Save capture functionality
 
   // File operations
@@ -129,7 +129,7 @@ export type IPCChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS]
 // Component props types
 export interface TrayPopupProps {
   pins: Pin[]
-  onRemovePin: (id: string) => void // TEMPORARILY KEPT FOR COMPATIBILITY - Remove pin functionality disabled
+  onRemovePin: (id: string) => void
   onShowPreferences: () => void
   onPinClick: (pin: Pin) => void
   onReorderPins: (pinIds: string[]) => void
@@ -157,7 +157,7 @@ export interface PinStore {
   loadPins: () => Promise<void>
   addPin: (content: string) => Promise<void>
   // saveCapture: (content: string) => Promise<void> // TEMPORARILY COMMENTED OUT - Save capture functionality
-  // removePin: (id: string) => Promise<void> // TEMPORARILY COMMENTED OUT - Remove pin functionality
+  removePin: (id: string) => Promise<void>
   refreshPins: () => Promise<void>
   reorderPins: (pinIds: string[]) => Promise<void>
   clearError: () => void
@@ -181,7 +181,7 @@ export interface ElectronAPI {
   // Pin operations
   getPins: () => Promise<Pin[]>
   addPin: (content: string) => Promise<Pin>
-  // removePin: (id: string) => Promise<void> // TEMPORARILY COMMENTED OUT - Remove pin functionality
+  removePin: (id: string) => Promise<void>
   // saveCapture: (content: string) => Promise<Pin> // TEMPORARILY COMMENTED OUT - Save capture functionality
   refreshPins: () => Promise<Pin[]>
 
