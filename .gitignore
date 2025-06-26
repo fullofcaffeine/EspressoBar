@@ -7,6 +7,7 @@ yarn-error.log*
 # Build outputs
 dist
 out
+build
 .DS_Store
 .eslintcache
 *.log*
@@ -16,6 +17,13 @@ src/**/*.js
 src/**/*.jsx
 src/**/*.d.ts
 *.tsbuildinfo
+
+# Electron Vite generated files
+electron.vite.config.*.mjs
+electron.vite.config.*.js
+electron.vite.config.d.ts
+# Keep only the source .ts file
+!electron.vite.config.ts
 
 # Environment variables
 .env
@@ -30,6 +38,13 @@ playwright-report/
 coverage/
 .nyc_output
 .specstory/**
+
+# Test screenshots and debug images
+debug-*.png
+regression-*.png
+*.png
+# But keep the resource images
+!resources/*.png
 
 # IDE and editor files
 .vscode/
@@ -52,4 +67,9 @@ app/dist/
 app/build/
 electron-builder-*.yaml
 .electron-gyp
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
 
