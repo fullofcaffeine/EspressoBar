@@ -1,3 +1,11 @@
+# [1.2.0](https://github.com/fullofcaffeine/EspressoBar/compare/v1.1.0...v1.2.0) (2025-06-26)
+
+
+### Features
+
+* implement delete pin functionality with comprehensive E2E tests ([8a93398](https://github.com/fullofcaffeine/EspressoBar/commit/8a933987c166d462a3b8ed92ce8679328f5240eb))
+* implement delete pin functionality with trashcan icon ([030fd4f](https://github.com/fullofcaffeine/EspressoBar/commit/030fd4f2486cad1193e1dca3887eebb0afe77e04))
+
 # [1.1.0](https://github.com/fullofcaffeine/EspressoBar/compare/v1.0.1...v1.1.0) (2025-06-25)
 
 
