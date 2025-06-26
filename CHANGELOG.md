@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/fullofcaffeine/EspressoBar/compare/v1.2.0...v1.2.1) (2025-06-26)
+
+
+### Bug Fixes
+
+* make E2E tests more robust for different environments ([3102d48](https://github.com/fullofcaffeine/EspressoBar/commit/3102d480741ceb00838cb8adbd921d21169357e5))
+
 # [1.2.0](https://github.com/fullofcaffeine/EspressoBar/compare/v1.1.0...v1.2.0) (2025-06-26)
 
 
