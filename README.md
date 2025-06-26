@@ -12,7 +12,6 @@ It's alpha quality and still a WIP. There will be bugs and UX issues. Use at you
 
 - **📌 Pin org headlines** with `:pinned:` tag and they appear in your tray
 - **🚀 Quick access** - System tray popup shows your focus area instantly
-- **📝 Rich details** - Click pins to see content, timestamps, tags, and file info
 - **⚡ Jump to Emacs** - "Open in Emacs" button opens files at exact lines
 - **💾 Persistent** - Your focus survives Emacs restarts and system reboots
 - **🎯 Background scanning** - Automatically finds pinned items across org directories
