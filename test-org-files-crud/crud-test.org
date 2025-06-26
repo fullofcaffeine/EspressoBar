@@ -1,0 +1,14 @@
+* TODO Delete me first 
+  This task will be deleted by the delete pin test.
+
+* TODO Delete me second 
+  This task will be deleted in comprehensive deletion scenarios.
+
+* TODO Keep me pinned 
+  This task should remain pinned during tests.
+
+* TODO Regular task (not pinned)
+  This is just a regular task without the pinned property.
+
+* TODO Another regular task
+  This task is also not pinned and should not show up in the pinned items.

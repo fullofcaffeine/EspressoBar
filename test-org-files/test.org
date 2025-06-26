@@ -1,11 +1,14 @@
-* TODO Important task
+* TODO Important task :pinned:
   This is an important task that needs attention.
 
-* TODO Meeting notes
+* TODO Meeting notes :pinned:
   Notes from the team meeting about project status.
 
-* TODO Project planning
+* TODO Project planning :pinned:
   Planning for the next quarter's projects and goals.
+
+* TODO Code review tasks
+  Review pending pull requests and provide feedback.
 
 * Regular task (not pinned)
   This is just a regular task without the pinned property.

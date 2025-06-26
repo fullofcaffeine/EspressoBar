@@ -7,6 +7,37 @@ import * as os from 'os'
 let electronApp: ElectronApplication
 let page: Page
 
+// Helper function to restore CRUD test file to original state
+async function restoreCrudTestFile() {
+  const crudTestFilePath = path.join(process.cwd(), 'test-org-files-crud', 'crud-test.org')
+  const originalContent = `* TODO Delete me first :pinned:
+  This task will be deleted by the delete pin test.
+
+* TODO Delete me second :pinned:
+  This task will be deleted in comprehensive deletion scenarios.
+
+* TODO Keep me pinned :pinned:
+  This task should remain pinned during tests.
+
+* TODO Regular task (not pinned)
+  This is just a regular task without the pinned property.
+
+* TODO Another regular task
+  This task is also not pinned and should not show up in the pinned items.
+`
+  
+  try {
+    // Ensure directory exists
+    const crudTestDir = path.join(process.cwd(), 'test-org-files-crud')
+    if (!fs.existsSync(crudTestDir)) {
+      fs.mkdirSync(crudTestDir, { recursive: true })
+    }
+    fs.writeFileSync(crudTestFilePath, originalContent, 'utf-8')
+  } catch (error) {
+    console.log('⚠️ Could not restore CRUD test file:', error)
+  }
+}
+
 test.beforeAll(async () => {
   // Clean up any existing storage to start fresh
   const storageDir = path.join(os.homedir(), '.config', 'EspressoBar')
@@ -94,6 +125,9 @@ test.beforeAll(async () => {
 
 test.beforeEach(async () => {
   console.log('🧹 Resetting test data before each test...')
+
+  // Restore CRUD test file to original state
+  await restoreCrudTestFile()
 
   // Reset test data via the renderer process (which will call the main process)
   await page.evaluate(async () => {
@@ -225,13 +259,13 @@ test.describe('CRUD Operations End-to-End', () => {
     // Wait for the app to be ready
     await page.waitForSelector('#root', { timeout: 10000 })
 
-    // Ensure we have test org data set up
-    await page.evaluate(async () => {
-      const testOrgDir = '/Users/fullofcaffeine/workspace/code/espressobar/test-org-files'
+    // Set up dedicated CRUD test directory to avoid interfering with other tests  
+    const crudTestDir = path.join(process.cwd(), 'test-org-files-crud')
+    await page.evaluate(async (dir) => {
       if ((window as any).electronAPI && (window as any).electronAPI.setOrgDirectories) {
-        await (window as any).electronAPI.setOrgDirectories([testOrgDir])
+        await (window as any).electronAPI.setOrgDirectories([dir])
       }
-    })
+    }, crudTestDir)
 
     // Trigger a scan to ensure we have fresh data
     await page.evaluate(async () => {
@@ -285,9 +319,10 @@ test.describe('CRUD Operations End-to-End', () => {
     const pinContent = await firstPin.locator('[data-testid="pin-content"]').textContent()
     console.log(`🔍 Pin to delete: "${pinContent}"`)
 
-    // Initially, delete button should not be visible
+    // Initially, delete button should be transparent (opacity 0)
     const deleteButton = firstPin.locator('[data-testid="delete-pin"]')
-    expect(await deleteButton.isVisible()).toBe(false)
+    const initialOpacity = await deleteButton.evaluate(el => window.getComputedStyle(el).opacity)
+    expect(initialOpacity).toBe('0')
 
     // Hover over the pin to reveal delete button
     await firstPin.hover()
@@ -434,15 +469,15 @@ test.describe('CRUD Operations End-to-End', () => {
     // Wait for the app to be ready
     await page.waitForSelector('#root', { timeout: 10000 })
 
-    // Ensure we have test org data set up
-    await page.evaluate(async () => {
-      const testOrgDir = '/Users/fullofcaffeine/workspace/code/espressobar/test-org-files'
+    // Set up dedicated CRUD test directory to avoid interfering with other tests
+    const crudTestDir = path.join(process.cwd(), 'test-org-files-crud')
+    await page.evaluate(async (dir) => {
       if ((window as any).electronAPI && (window as any).electronAPI.setOrgDirectories) {
-        await (window as any).electronAPI.setOrgDirectories([testOrgDir])
+        await (window as any).electronAPI.setOrgDirectories([dir])
       }
-    })
+    }, crudTestDir)
 
-    // Trigger a scan to ensure we have fresh data
+    // Trigger a scan to ensure we have fresh data including crud-test.org
     await page.evaluate(async () => {
       if ((window as any).electronAPI && (window as any).electronAPI.refreshPins) {
         await (window as any).electronAPI.refreshPins()
@@ -451,8 +486,10 @@ test.describe('CRUD Operations End-to-End', () => {
 
     await page.waitForTimeout(2000) // Wait for scan to complete
 
-    // Ensure we have at least 2 pins for testing
+    // Get initial pin count (should be 9 total: 6 from test.org + detailed-test.org + 3 from crud-test.org)
     let pinCount = await page.locator('[data-testid="pin-item"]').count()
+    console.log(`🔍 Starting with ${pinCount} pins`)
+
     if (pinCount < 2) {
       console.log('⚠️ Need more pins for comprehensive testing - running full scan...')
       
@@ -480,8 +517,6 @@ test.describe('CRUD Operations End-to-End', () => {
         return
       }
     }
-
-    console.log(`🔍 Starting with ${pinCount} pins`)
 
     // Test 1: Delete button visibility behavior
     console.log('🧪 Test 1: Delete button visibility on hover')

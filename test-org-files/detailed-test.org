@@ -1,4 +1,4 @@
-* TODO Important task with timestamps
+* TODO Important task with timestamps :pinned:
   SCHEDULED: <2024-12-18 Wed 10:00>
   DEADLINE: <2024-12-20 Fri>
 
@@ -9,7 +9,7 @@
   
   The task also includes timestamps for scheduling and deadlines.
 
-* TODO Meeting notes with time range
+* TODO Meeting notes with time range :pinned:
   <2024-12-19 Thu 14:00-16:00>
   
   Notes from the team meeting about project status.
@@ -23,7 +23,7 @@
   - Follow up on pending tasks
   - Schedule individual check-ins
 
-* TODO Project planning with multiple timestamps
+* TODO Project planning with multiple timestamps :pinned:
   SCHEDULED: <2024-12-21 Sat>
   Meeting date: <2024-12-22 Sun 15:30>
   Review period: <2024-12-23 Mon>--<2024-12-27 Fri>
