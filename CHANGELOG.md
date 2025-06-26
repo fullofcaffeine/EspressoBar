@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/fullofcaffeine/EspressoBar/compare/v1.2.1...v1.3.0) (2025-06-26)
+
+
+### Features
+
+* implement org file pinning via #+filetags with visual distinction ([3644610](https://github.com/fullofcaffeine/EspressoBar/commit/3644610c7e7acdae552e6ec7f007b5dbbd889bdb))
+
 ## [1.2.1](https://github.com/fullofcaffeine/EspressoBar/compare/v1.2.0...v1.2.1) (2025-06-26)
 
 
